@@ -1,5 +1,7 @@
 package com.ohereza.deliveryclerkmobileapp.helper;
 
+import android.os.StrictMode;
+
 import org.json.JSONObject;
 
 import java.io.BufferedWriter;
@@ -11,8 +13,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.util.Map;
 
+import static com.ohereza.deliveryclerkmobileapp.helper.Configs.loginRelatedUri;
 import static com.ohereza.deliveryclerkmobileapp.helper.Configs.serverAddress;
 
 /**
@@ -22,9 +24,9 @@ import static com.ohereza.deliveryclerkmobileapp.helper.Configs.serverAddress;
 
 public class ServerConnector {
 
-    public void loginToServer(String username, String password){
-        // form json request
-
+    public int loginToServer(String username, String password) {
+        String request = "usr=" + username + "&pwd=" + password;
+        return sendXWFUFormatToServer(request, loginRelatedUri);
     }
 
     public void addFirebaseInstanceId(String username, String password, String instanceId){
@@ -35,6 +37,9 @@ public class ServerConnector {
     public void signUp(String username, String password){
 
     }
+
+
+
 
 
     public void sendJsonFormatToServer(JSONObject jsonRequest, String partialUri){
@@ -50,6 +55,9 @@ public class ServerConnector {
 
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
+
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
 
             Writer writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
             writer.write(String.valueOf(jsonRequest));
@@ -69,10 +77,10 @@ public class ServerConnector {
         }
     }
 
-    public void sendXWFEFormatToServer(Map<String,String> request, String partialUri){
+    public int sendXWFUFormatToServer(String request, String partialUri){
 
         try {
-
+            System.out.println(serverAddress+partialUri);
             URL url = new URL(serverAddress+partialUri);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(60000 /* milliseconds */);
@@ -83,12 +91,15 @@ public class ServerConnector {
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             conn.setRequestProperty("Accept", "application/json");
 
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+
             Writer writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
             writer.write(String.valueOf(request));
 
             writer.close();
 
-            //return conn.getResponseCode();
+            return conn.getResponseCode();
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -99,6 +110,7 @@ public class ServerConnector {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return 0;
     }
 
 

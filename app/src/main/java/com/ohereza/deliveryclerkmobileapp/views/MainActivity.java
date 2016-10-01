@@ -3,7 +3,6 @@ package com.ohereza.deliveryclerkmobileapp.views;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -15,17 +14,6 @@ import com.ohereza.deliveryclerkmobileapp.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.HashMap;
 
 import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
 
@@ -77,66 +65,5 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
-        HashMap<String,String> testMap = new HashMap<>();
-
-        testMap.put("usr","administrator");
-        testMap.put("pwd","pds");
-
-        String req = "usr=administrator&pwd=pds";
-
-        System.out.println("request: "+testMap);
-
-        sendToServer("http://146.185.156.28:8000/api/method/login",req);
-
-
-
-
-    }
-
-    private int sendToServer(String link, String request){
-        Writer writer;
-
-        try {
-
-            URL url = new URL(link);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(60000 /* milliseconds */);
-            conn.setConnectTimeout(60000 /* milliseconds */);
-            conn.setRequestMethod("POST");
-            conn.setDoInput(true);
-
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-            //conn.setRequestProperty("Accept", "application/json");
-            ////
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-
-            StrictMode.setThreadPolicy(policy);
-            /////
-            try {
-                writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
-                writer.write(String.valueOf(request));
-                writer.close();
-            }
-            catch(Exception e){
-                System.out.println("caught an exception");
-            }
-
-
-            System.out.println("response from server: "+conn.getResponseCode());
-
-            return conn.getResponseCode();
-
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    return 0;
     }
 }
