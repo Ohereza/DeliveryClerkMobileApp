@@ -6,5 +6,11 @@ package com.ohereza.deliveryclerkmobileapp.helper;
 
 public class Configs {
     public static final String PREFS_NAME = "MyPrefsFile";
-    public static final String login = "http://146.185.156.28:8000/api/method/login";
+
+    // related to the server connector class
+    protected static String serverAddress = "http://146.185.156.28:8000/";
+    protected static String loginRelatedUri = "/api/method/login";
+    //protected static String
+
+
 }

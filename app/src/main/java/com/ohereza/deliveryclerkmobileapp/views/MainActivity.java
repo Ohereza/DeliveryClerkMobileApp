@@ -24,6 +24,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.HashMap;
 
 import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
 
@@ -68,16 +69,30 @@ public class MainActivity extends AppCompatActivity {
                     jsonRequest.put("Token", refreshedToken);
 
                     // send to server
-                    sendToServer(link,jsonRequest);
+                    //sendToServer(link,jsonRequest);
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         });
+
+
+        HashMap<String,String> testMap = new HashMap<>();
+
+        testMap.put("usr","administrator");
+        testMap.put("pwd","psd");
+
+        System.out.println("request: "+testMap);
+
+        sendToServer("http://146.185.156.28:8000/api/method/login",testMap);
+
+
+
+
     }
 
-    private int sendToServer(String link, JSONObject jsonRequest){
+    private int sendToServer(String link, HashMap request){
 
         try {
 
@@ -88,13 +103,15 @@ public class MainActivity extends AppCompatActivity {
             conn.setRequestMethod("POST");
             conn.setDoInput(true);
 
-            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             conn.setRequestProperty("Accept", "application/json");
 
             Writer writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
-            writer.write(String.valueOf(jsonRequest));
+            writer.write(String.valueOf(request));
 
             writer.close();
+
+            System.out.println("response from server: "+conn.getResponseCode());
 
             return conn.getResponseCode();
 
