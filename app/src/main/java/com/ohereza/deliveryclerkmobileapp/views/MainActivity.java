@@ -3,6 +3,7 @@ package com.ohereza.deliveryclerkmobileapp.views;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -81,18 +82,21 @@ public class MainActivity extends AppCompatActivity {
         HashMap<String,String> testMap = new HashMap<>();
 
         testMap.put("usr","administrator");
-        testMap.put("pwd","psd");
+        testMap.put("pwd","pds");
+
+        String req = "usr=administrator&pwd=pds";
 
         System.out.println("request: "+testMap);
 
-        sendToServer("http://146.185.156.28:8000/api/method/login",testMap);
+        sendToServer("http://146.185.156.28:8000/api/method/login",req);
 
 
 
 
     }
 
-    private int sendToServer(String link, HashMap request){
+    private int sendToServer(String link, String request){
+        Writer writer;
 
         try {
 
@@ -103,13 +107,22 @@ public class MainActivity extends AppCompatActivity {
             conn.setRequestMethod("POST");
             conn.setDoInput(true);
 
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+            //conn.setRequestProperty("Accept", "application/json");
+            ////
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
-            Writer writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
-            writer.write(String.valueOf(request));
+            StrictMode.setThreadPolicy(policy);
+            /////
+            try {
+                writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
+                writer.write(String.valueOf(request));
+                writer.close();
+            }
+            catch(Exception e){
+                System.out.println("caught an exception");
+            }
 
-            writer.close();
 
             System.out.println("response from server: "+conn.getResponseCode());
 
