@@ -20,7 +20,7 @@
 
     <EditText
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="150dp"
         android:background="@color/light_gray"
         android:id="@+id/retrieved_id_edit_text"
         />

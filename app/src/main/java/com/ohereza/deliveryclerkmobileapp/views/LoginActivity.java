@@ -61,6 +61,14 @@ public class LoginActivity extends AppCompatActivity {
                         editor.putString("usr",username);
                         editor.putString("pwd",password);
                         editor.commit();
+
+                        System.out.println("fcm instanceid: "+sharedPreferences.getString("FCM_Token",null));
+                        // retrieve FCM instance id and update server
+                        if (sharedPreferences.getString("FCM_Token",null) != null) {
+                            mConnector.updateFirebaseInstanceId(username,
+                                    sharedPreferences.getString("FCM_Token", null));
+                        }
+
                         //launch main activity
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
@@ -85,6 +93,4 @@ public class LoginActivity extends AppCompatActivity {
         super.onStop();
         finish();
     }
-
-
 }

@@ -11,8 +11,8 @@ import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.ohereza.deliveryclerkmobileapp.R;
+import com.ohereza.deliveryclerkmobileapp.helper.ServerConnector;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
@@ -52,17 +52,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 JSONObject jsonRequest = new JSONObject();
-                try {
-                    String link = "";
-                    refreshedToken = sharedPreferences.getString("FCM_Token",null);
-                    jsonRequest.put("Token", refreshedToken);
+                String link = "";
+                ServerConnector mconnector = new ServerConnector();
+                refreshedToken = sharedPreferences.getString("FCM_Token",null);
 
-                    // send to server
-                    //sendToServer(link,jsonRequest);
+                String request = "data={\"fcm_instance_id\":\""+refreshedToken +"\"}";
+                mconnector.putXWFUFormatToServer(request,"/api/resource/User/administrator");
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                // send to server
+                //sendToServer(link,jsonRequest);
+
             }
         });
     }
