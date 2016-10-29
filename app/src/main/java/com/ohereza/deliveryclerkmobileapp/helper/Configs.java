@@ -8,9 +8,9 @@ public class Configs {
     public static final String PREFS_NAME = "MyPrefsFile";
 
     // related to the server connector class
-    protected static String serverAddress = "http://pds.intego.rw:8000";
-    protected static String loginRelatedUri = "/api/method/login";
-    protected static String updateFcmInstanceIdUri = "/api/resource/User";
+    public static String serverAddress = "http://pds.intego.rw:8000";
+    public static String loginRelatedUri = "/api/method/login";
+    public static String updateFcmInstanceIdUri = "/api/resource/User";
 
 
 }

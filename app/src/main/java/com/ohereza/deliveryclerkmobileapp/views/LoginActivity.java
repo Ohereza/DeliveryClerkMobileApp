@@ -9,8 +9,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.franmontiel.persistentcookiejar.ClearableCookieJar;
+import com.franmontiel.persistentcookiejar.PersistentCookieJar;
+import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
+import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.ohereza.deliveryclerkmobileapp.R;
+import com.ohereza.deliveryclerkmobileapp.helper.Configs;
+import com.ohereza.deliveryclerkmobileapp.helper.LoginResponse;
 import com.ohereza.deliveryclerkmobileapp.helper.ServerConnector;
+import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
+
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
 
@@ -25,11 +39,31 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private ServerConnector mConnector;
     private Button submitButton;
+    private String username;
+    private String password;
+    ClearableCookieJar cookieJar;
+    OkHttpClient okHttpClient;
+    Retrofit retrofit;
+    PdsAPI pdsAPI;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        cookieJar = new PersistentCookieJar(new SetCookieCache(),
+                new SharedPrefsCookiePersistor(getApplicationContext()));
+        okHttpClient = new OkHttpClient.Builder()
+                .cookieJar(cookieJar)
+                .build();
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Configs.serverAddress)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build();
+
+        pdsAPI = retrofit.create(PdsAPI.class);
 
         mConnector = new ServerConnector();
 
@@ -39,7 +73,6 @@ public class LoginActivity extends AppCompatActivity {
         usernameEditText = (EditText) findViewById(R.id.username_edit_text);
         passwordEditText = (EditText) findViewById(R.id.password_edit_text);
 
-
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -47,34 +80,58 @@ public class LoginActivity extends AppCompatActivity {
                 if (!usernameEditText.getText().toString().equalsIgnoreCase("") &&
                         !passwordEditText.getText().toString().equalsIgnoreCase("")){
 
-                    String username = usernameEditText.getText().toString().trim();
-                    String password = passwordEditText.getText().toString().trim();
+                    username = usernameEditText.getText().toString().trim();
+                    password = passwordEditText.getText().toString().trim();
 
-                    int responseCode = mConnector.loginToServer(username, password);
+                    // connect to server
+                    pdsAPI.login(username, password).enqueue(new Callback<LoginResponse>() {
+                        @Override
+                        public void onResponse(Call<LoginResponse> call,
+                                               Response<LoginResponse> response) {
+                            if (response.code() == 200){
+                                // store credentials
+                                sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("usr",username);
+                                editor.putString("pwd",password);
+                                editor.commit();
 
-                    System.out.println("returned response: "+responseCode);
+                                System.out.println("fcm instanceid: " +
+                                        sharedPreferences.getString("FCM_Token",null));
+                                // retrieve FCM instance id and update server
+                                if (sharedPreferences.getString("FCM_Token",null) != null) {
+                                    pdsAPI.updateFirebaseInstanceId(
+                                            sharedPreferences.getString("FCM_Token",null)
+                                                ).enqueue(new Callback<Void>() {
+                                                    @Override
+                                                    public void onResponse(Call<Void> call,
+                                                                           Response<Void> response){}
 
-                    if (responseCode == 200){
-                        // store credentials
-                        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("usr",username);
-                        editor.putString("pwd",password);
-                        editor.commit();
+                                                    @Override
+                                                    public void onFailure(Call<Void> call,
+                                                                          Throwable t) {}
+                                                          });
 
-                        System.out.println("fcm instanceid: "+sharedPreferences.getString("FCM_Token",null));
-                        // retrieve FCM instance id and update server
-                        if (sharedPreferences.getString("FCM_Token",null) != null) {
-                            mConnector.updateFirebaseInstanceId(username,
-                                    sharedPreferences.getString("FCM_Token", null));
+                                            mConnector.updateFirebaseInstanceId(username,
+                                                    sharedPreferences.getString("FCM_Token", null));
+                                }
+
+                                //launch main activity
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                startActivity(intent);
+                            }else{
+                                Toast.makeText(getApplicationContext(),
+                                        R.string.login_error_msg,Toast.LENGTH_LONG).show();
+                            }
                         }
 
-                        //launch main activity
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
-                    }else{
-                        Toast.makeText(getApplicationContext(), R.string.login_error_msg,Toast.LENGTH_LONG).show();
-                    }
+                        @Override
+                        public void onFailure(Call<LoginResponse> call, Throwable t) {
+                            Toast.makeText(getApplicationContext(),
+                                    R.string.login_error_msg,Toast.LENGTH_LONG).show();
+                        }
+                    });
+
 
                     String fcmInstanceId = sharedPreferences.getString("FCM_Token",null);
 
