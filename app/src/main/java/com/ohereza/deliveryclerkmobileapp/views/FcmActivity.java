@@ -36,10 +36,10 @@ public class FcmActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private String refreshedToken="";
     private Context context;
-    ClearableCookieJar cookieJar;
-    OkHttpClient okHttpClient;
-    Retrofit retrofit;
-    PdsAPI pdsAPI;
+    private ClearableCookieJar cookieJar;
+    private OkHttpClient okHttpClient;
+    private Retrofit retrofit;
+    private PdsAPI pdsAPI;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
