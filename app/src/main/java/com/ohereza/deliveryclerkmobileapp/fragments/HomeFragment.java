@@ -1,4 +1,4 @@
-package info.androidhive.navigationdrawer.fragment;
+package com.ohereza.deliveryclerkmobileapp.fragments;
 
 import android.content.Context;
 import android.net.Uri;
@@ -8,7 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import info.androidhive.navigationdrawer.R;
+import com.ohereza.deliveryclerkmobileapp.R;
 
 /**
  * A simple {@link Fragment} subclass.

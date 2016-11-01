@@ -2,19 +2,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.ohereza.deliveryclerkmobileapp.fragments.HomeFragment">
+    tools:context="com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment">
 
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_gravity="center"
         android:alpha="0.3"
-        android:src="@drawable/ic_home_black_24dp" />
-
-    <TextView
-        android:text="This is suppose to be the map but don't worry it's comming..."
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView" />
+        android:src="@drawable/ic_photo_library_black_24dp" />
 
 </FrameLayout>

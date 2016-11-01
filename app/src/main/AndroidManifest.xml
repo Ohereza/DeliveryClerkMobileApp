@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ohereza.deliveryclerkmobileapp">
+package="com.ohereza.deliveryclerkmobileapp">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <application android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name"
+    android:supportsRtl="true" android:theme="@style/AppTheme">
 
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
         <activity android:name=".views.SplashScreenActivity">
-                  android:theme="@style/SplashTheme">
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
 
-        <activity
-            android:name=".views.MainActivity"
-            android:label="@string/app_name" />
+
 
         <activity
             android:name=".views.LoginActivity"
@@ -48,7 +48,8 @@
 
         <service android:name=".services.LocatorService" android:process=":locator_service" />
 
-
-    </application>
-
+        <activity android:name="com.ohereza.deliveryclerkmobileapp.views.AboutUsActivity" android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+</application>
 </manifest>

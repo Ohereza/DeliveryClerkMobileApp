@@ -7,13 +7,9 @@
             android:icon="@drawable/ic_home_black_24dp"
             android:title="@string/nav_home" />
         <item
-            android:id="@+id/nav_photos"
+            android:id="@+id/nav_history"
             android:icon="@drawable/ic_photo_library_black_24dp"
-            android:title="@string/nav_photos" />
-        <item
-            android:id="@+id/nav_movies"
-            android:icon="@drawable/ic_local_movies_black_24dp"
-            android:title="@string/nav_movies" />
+            android:title="@string/nav_history" />
 
         <item
             android:id="@+id/nav_notifications"
@@ -30,7 +26,7 @@
         <menu>
             <item
                 android:id="@+id/nav_about_us"
-                android:title="@string/nav_about_us" />
+                android:title="@string/nav_about_kasha" />
             <item
                 android:id="@+id/nav_privacy_policy"
                 android:title="@string/privacy_policy" />

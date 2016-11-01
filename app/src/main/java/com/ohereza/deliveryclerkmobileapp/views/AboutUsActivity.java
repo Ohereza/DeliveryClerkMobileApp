@@ -1,10 +1,11 @@
-package info.androidhive.navigationdrawer.activity;
+package  com.ohereza.deliveryclerkmobileapp.views;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
-import info.androidhive.navigationdrawer.R;
+import com.ohereza.deliveryclerkmobileapp.R;
+
 
 public class AboutUsActivity extends AppCompatActivity {
 
