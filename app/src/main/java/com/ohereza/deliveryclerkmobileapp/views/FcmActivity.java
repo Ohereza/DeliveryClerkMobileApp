@@ -84,33 +84,33 @@ public class FcmActivity extends AppCompatActivity {
 
                 pdsAPI.login("Administrator", "pds").enqueue(new Callback<LoginResponse>() {
                              @Override
-                             public void onResponse(Call<LoginResponse> call,
-                                                    Response<LoginResponse> response){
+                     public void onResponse(Call<LoginResponse> call,
+                                            Response<LoginResponse> response){
 
-                                 pdsAPI.updateFCMInstanceId(new FCMInstanceUpdate(
-                                         sharedPreferences.getString("FCM_Token",null))).enqueue(
-                                         new Callback<FCMInstanceUpdate>() {
-                                             @Override
-                                             public void onResponse(Call<FCMInstanceUpdate> call,
-                                                                    Response<FCMInstanceUpdate> response) {
-                                                 Toast.makeText(getApplicationContext(),"Posting successfull",
-                                                         Toast.LENGTH_LONG).show();
-                                             }
+                         pdsAPI.updateFCMInstanceId(new FCMInstanceUpdate(
+                                 sharedPreferences.getString("FCM_Token",null))).enqueue(
+                                 new Callback<FCMInstanceUpdate>() {
+                                     @Override
+                                     public void onResponse(Call<FCMInstanceUpdate> call,
+                                                            Response<FCMInstanceUpdate> response) {
+                                         Toast.makeText(getApplicationContext(),"Posting successfull",
+                                                 Toast.LENGTH_LONG).show();
+                                     }
 
-                                             @Override
-                                             public void onFailure(Call<FCMInstanceUpdate> call, Throwable t) {
-                                                 Toast.makeText(getApplicationContext(),"Posting unsuccessfull",
-                                                         Toast.LENGTH_LONG).show();
-                                             }
-                                         }
-                                 );
-                             }
+                                     @Override
+                                     public void onFailure(Call<FCMInstanceUpdate> call, Throwable t) {
+                                         Toast.makeText(getApplicationContext(),"Posting unsuccessfull",
+                                                 Toast.LENGTH_LONG).show();
+                                     }
+                                 }
+                         );
+                     }
 
-                             @Override
-                             public void onFailure(Call<LoginResponse> call, Throwable t) {
+                     @Override
+                     public void onFailure(Call<LoginResponse> call, Throwable t) {
 
-                             }
-                             });
+                     }
+                     });
 
             }
         });

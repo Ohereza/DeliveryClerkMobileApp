@@ -23,11 +23,13 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    compile 'com.google.android.gms:play-services-location:9.6.1'
     compile 'com.android.support:appcompat-v7:24.0.0'
     compile 'com.google.firebase:firebase-messaging:9.6.0'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     compile 'com.github.franmontiel:PersistentCookieJar:v1.0.0'
+    compile group: 'com.pubnub', name: 'pubnub', version: '4.2.0'
     testCompile 'junit:junit:4.12'
 }
 

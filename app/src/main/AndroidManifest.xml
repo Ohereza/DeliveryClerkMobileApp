@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ohereza.deliveryclerkmobileapp">
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -44,6 +46,7 @@
         </service>
         <!-- [END firebase_iid_service] -->
 
+        <service android:name=".services.LocatorService" android:process=":locator_service" />
 
 
     </application>
