@@ -18,6 +18,7 @@ import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.helper.LoginResponse;
 import com.ohereza.deliveryclerkmobileapp.helper.ServerConnector;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
+import com.ohereza.deliveryclerkmobileapp.services.LocatorService;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
@@ -96,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putString("pwd",password);
                                 editor.commit();
 
-                                System.out.println("fcm instanceid: " +
+                                /*System.out.println("fcm instanceid: " +
                                         sharedPreferences.getString("FCM_Token",null));
                                 // retrieve FCM instance id and update server
                                 if (sharedPreferences.getString("FCM_Token",null) != null) {
@@ -114,11 +115,17 @@ public class LoginActivity extends AppCompatActivity {
 
                                             mConnector.updateFirebaseInstanceId(username,
                                                     sharedPreferences.getString("FCM_Token", null));
-                                }
+                                }*/
+
+                                // start locator service
+                                Intent locationServiceIntent = new Intent(LoginActivity.this,
+                                                                            LocatorService.class);
+                                startService(locationServiceIntent);
 
                                 //launch main activity
                                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                 startActivity(intent);
+
                             }else{
                                 Toast.makeText(getApplicationContext(),
                                         R.string.login_error_msg,Toast.LENGTH_LONG).show();

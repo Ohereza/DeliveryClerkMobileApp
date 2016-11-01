@@ -1,6 +1,9 @@
 package com.ohereza.deliveryclerkmobileapp.views;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -19,16 +22,22 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.ohereza.deliveryclerkmobileapp.R;
 import com.ohereza.deliveryclerkmobileapp.fragments.HomeFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.NotificationsFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.SettingsFragment;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
+import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
 public class MainActivity extends AppCompatActivity {
 
     private NavigationView navigationView;
@@ -60,15 +69,26 @@ public class MainActivity extends AppCompatActivity {
     private boolean shouldLoadHomeFragOnBackPress = true;
     private Handler mHandler;
 
-
+ private ClearableCookieJar cookieJar;
+    private OkHttpClient okHttpClient;
+    private Retrofit retrofit;
+    private PdsAPI pdsAPI;
+    private Location mCurrentLocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         mHandler = new Handler();
+int gpsStatus = 0;
+        try {
+            gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -79,7 +99,17 @@ public class MainActivity extends AppCompatActivity {
         txtName = (TextView) navHeader.findViewById(R.id.name);
         txtWebsite = (TextView) navHeader.findViewById(R.id.website);
         imgProfile = (ImageView) navHeader.findViewById(R.id.img_profile);
-
+ if(gpsStatus==0){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("NOTICE");
+            builder.setMessage("Please enable GPS to allow tracking of your location");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    // Prompt to enable location.
+                    Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(onGPS);
+                }
+            });
         // load toolbar titles from string resources
         activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
@@ -90,7 +120,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
+            Dialog alertDialog = builder.create();
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.show();
         // load nav menu header data
         loadNavHeader();
 
