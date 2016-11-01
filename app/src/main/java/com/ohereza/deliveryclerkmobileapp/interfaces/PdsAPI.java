@@ -1,6 +1,8 @@
 package com.ohereza.deliveryclerkmobileapp.interfaces;
 
 import com.ohereza.deliveryclerkmobileapp.helper.FCMInstanceUpdate;
+import com.ohereza.deliveryclerkmobileapp.helper.LocationUpdateResponse;
+import com.ohereza.deliveryclerkmobileapp.helper.LocationUpdater;
 import com.ohereza.deliveryclerkmobileapp.helper.LoginResponse;
 
 import retrofit2.Call;
@@ -25,6 +27,9 @@ public interface PdsAPI {
 
     @PUT("/api/resource/User/administrator")
     Call<FCMInstanceUpdate> updateFCMInstanceId(@Body FCMInstanceUpdate data);
+
+    @POST("/api/resource/Location")
+    Call<LocationUpdateResponse> updateLocation(@Body LocationUpdater data);
 
 
 }

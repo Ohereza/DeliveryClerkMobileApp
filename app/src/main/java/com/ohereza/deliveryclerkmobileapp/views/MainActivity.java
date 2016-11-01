@@ -1,11 +1,11 @@
 package com.ohereza.deliveryclerkmobileapp.views;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -22,19 +23,17 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.provider.Settings;
-import android.support.v7.app.AlertDialog;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.ohereza.deliveryclerkmobileapp.R;
+import com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.HomeFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.NotificationsFragment;
-import com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.SettingsFragment;
-import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
+import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -43,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private DrawerLayout drawer;
     private View navHeader;
-    private ImageView imgNavHeaderBg, imgProfile;
+    private ImageView imgProfile;
     private TextView txtName, txtWebsite;
     private Toolbar toolbar;
     private FloatingActionButton fab;
@@ -74,21 +73,22 @@ public class MainActivity extends AppCompatActivity {
     private Retrofit retrofit;
     private PdsAPI pdsAPI;
     private Location mCurrentLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mHandler = new Handler();
-int gpsStatus = 0;
+        int gpsStatus = 0;
         try {
             gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
         }
+
+        mHandler = new Handler();
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -99,7 +99,19 @@ int gpsStatus = 0;
         txtName = (TextView) navHeader.findViewById(R.id.name);
         txtWebsite = (TextView) navHeader.findViewById(R.id.website);
         imgProfile = (ImageView) navHeader.findViewById(R.id.img_profile);
- if(gpsStatus==0){
+
+        // load toolbar titles from string resources
+        activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Kasha mail", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+
+        if (gpsStatus == 0) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("NOTICE");
             builder.setMessage("Please enable GPS to allow tracking of your location");
@@ -110,19 +122,9 @@ int gpsStatus = 0;
                     startActivity(onGPS);
                 }
             });
-        // load toolbar titles from string resources
-        activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-            Dialog alertDialog = builder.create();
-            alertDialog.setCanceledOnTouchOutside(false);
-            alertDialog.show();
+        }
+
         // load nav menu header data
         loadNavHeader();
 
@@ -143,7 +145,7 @@ int gpsStatus = 0;
      */
     private void loadNavHeader() {
         // name, website
-        txtName.setText("Kabagamba Rene");
+        txtName.setText("Rene Kabagamba");
         txtWebsite.setText("www.kasha.com");
 
         // Loading profile image
@@ -216,10 +218,9 @@ int gpsStatus = 0;
             case 0:
                 // home
                 HomeFragment homeFragment = new HomeFragment();
-                //Fragment homeFragment = new MapFragment();
                 return homeFragment;
             case 1:
-                // history
+                // photos
                 HistoryFragment historyFragment = new HistoryFragment();
                 return historyFragment;
             case 2:
@@ -264,11 +265,11 @@ int gpsStatus = 0;
                         CURRENT_TAG = TAG_HISTORY;
                         break;
                     case R.id.nav_notifications:
-                        navItemIndex = 3;
+                        navItemIndex = 2;
                         CURRENT_TAG = TAG_NOTIFICATIONS;
                         break;
                     case R.id.nav_settings:
-                        navItemIndex = 4;
+                        navItemIndex = 3;
                         CURRENT_TAG = TAG_SETTINGS;
                         break;
                     case R.id.nav_about_us:
