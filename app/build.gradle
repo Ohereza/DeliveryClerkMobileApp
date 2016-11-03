@@ -25,6 +25,9 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.google.firebase:firebase-messaging:9.6.1'
+    compile 'com.google.android.gms:play-services-location:9.6.1'
+    compile 'com.android.support:appcompat-v7:24.0.0'
+    compile 'com.google.firebase:firebase-messaging:9.6.0'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     compile 'com.github.franmontiel:PersistentCookieJar:v1.0.0'
@@ -32,6 +35,7 @@ dependencies {
     compile 'com.android.support:support-v4:24.2.1'
     compile 'com.google.android.gms:play-services-maps:9.6.1'
     compile 'com.google.android.gms:play-services-location:9.6.1'
+    compile group: 'com.pubnub', name: 'pubnub', version: '4.2.0'
     testCompile 'junit:junit:4.12'
 
     // Glide image library
