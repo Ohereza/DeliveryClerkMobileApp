@@ -7,10 +7,10 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +23,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -47,6 +46,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
     private Location mLastLocation;
     private Marker marker;
 
+    private OnFragmentInteractionListener mListener;
+
 
     public MapFragment() {
         // Required empty public constructor
@@ -63,6 +64,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         //setContentView(R.layout.fragment_map);
 //        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
 //                .findFragmentById(R.id.map);
@@ -73,19 +75,66 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        //buildGoogleApiClient();
+        super.onCreate(savedInstanceState);
+
+//        ViewGroup MapView = (ViewGroup) inflater.inflate(R.layout.fragment_map, container, false);
+//
+//        if(savedInstanceState == null) {
+//            Fragment mapFragment = new SupportMapFragment();
+//            FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+////            //Adding map fragment to the FrameLayout.
+//            transaction.add(R.id.map, mapFragment, "map").commit();
+        //mapFragment.getM
+//        }
+//
+//        //Adding the mood panel.
+//        ViewGroup mapLayout = (ViewGroup) MapView.findViewById(R.id.map);
+//        mapLayout.addView(inflater.inflate(R.layout.fragment_map, null));
+//
+//        return MapView;
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_map, container, false);
     }
 
+    /////////////////
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnFragmentInteractionListener) {
+            mListener = (OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+
+
+ //////////////////
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+        Toast toastt= Toast.makeText(getContext(), "Map ready", Toast.LENGTH_LONG);
+        toastt.show();
+
         mMap = googleMap;
 
         LatLng umubano = new LatLng(-1.946288, 30.092149);
 
         //mMap.addMarker(new MarkerOptions().position(umubano).title("Umubano Hotel"));
 
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         //mMap.getUiSettings().setMapToolbarEnabled(true);
 
@@ -100,8 +149,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
         Location loc = getMyLocation();
 
         if(loc!= null) {
+            Toast toast= Toast.makeText(getContext(), "Loc is null 1st", Toast.LENGTH_LONG);
             LatLng myLoc = new LatLng(loc.getLatitude(), loc.getLongitude());
-            //mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
+            mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLoc, 16.0f));
         }
@@ -112,7 +162,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
                 loc = getMyLocation();
                 if(loc!= null) {
                     LatLng myLoc = new LatLng(loc.getLatitude(), loc.getLongitude());
-                    //mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
+                    mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLoc, 16.0f));
                     break;
@@ -223,5 +273,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
         }
 
         return myLocation;
+    }
+
+//    private GoogleMap getGoogleMap() {
+//        if (mMap == null && getActivity() != null && getActivity().getSupportFragmentManager()!= null) {
+//            SupportMapFragment smf = (SupportMapFragment)getActivity().getSupportFragmentManager().findFragmentById(R.id.map);
+//            if (smf != null) {
+//                mMap = smf.getMapAsync(this);// .getMap();
+//            }
+//        }
+//        return mMap;
+//    }
+
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onFragmentInteraction(Uri uri);
     }
 }
