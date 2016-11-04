@@ -46,9 +46,9 @@ public class FcmActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        retrievedEditText = (EditText) findViewById(R.id.retrieved_id_edit_text);
-        retrieveFCMToken = (Button) findViewById(R.id.retrieve_token_button);
-        sendToServerButton = (Button) findViewById(R.id.send_button);
+//        retrievedEditText = (EditText) findViewById(R.id.retrieved_id_edit_text);
+//        retrieveFCMToken = (Button) findViewById(R.id.retrieve_token_button);
+//        sendToServerButton = (Button) findViewById(R.id.send_button);
 
         context = getApplicationContext();
 

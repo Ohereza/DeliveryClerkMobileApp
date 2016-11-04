@@ -36,7 +36,7 @@ import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
-public class MainActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener {
+public class HomeActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener {
 
     private NavigationView navigationView;
     private DrawerLayout drawer;
@@ -246,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
                         break;
                     case R.id.nav_privacy_policy:
                         // launch new intent instead of loading fragment
-                        startActivity(new Intent(MainActivity.this, PrivacyPolicyActivity.class));
+                        startActivity(new Intent(HomeActivity.this, PrivacyPolicyActivity.class));
                         drawer.closeDrawers();
                         return true;
                     default:
