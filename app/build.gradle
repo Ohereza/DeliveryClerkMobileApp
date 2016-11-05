@@ -17,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        pickFirst 'META-INF/license.txt'
+        pickFirst 'META-INF/LICENSE'
+    }
 }
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -26,20 +31,20 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.google.firebase:firebase-messaging:9.6.1'
     compile 'com.google.android.gms:play-services-location:9.6.1'
-    compile 'com.android.support:appcompat-v7:24.0.0'
-    compile 'com.google.firebase:firebase-messaging:9.6.0'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     compile 'com.github.franmontiel:PersistentCookieJar:v1.0.0'
     compile 'com.android.support:design:24.2.1'
     compile 'com.android.support:support-v4:24.2.1'
     compile 'com.google.android.gms:play-services-maps:9.6.1'
-    compile 'com.google.android.gms:play-services-location:9.6.1'
     compile group: 'com.pubnub', name: 'pubnub', version: '4.2.0'
     testCompile 'junit:junit:4.12'
 
     // Glide image library
     compile 'com.github.bumptech.glide:glide:3.7.0'
+
 }
+
+
 
 apply plugin: 'com.google.gms.google-services'

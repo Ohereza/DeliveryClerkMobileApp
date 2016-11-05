@@ -2,6 +2,7 @@ package com.ohereza.deliveryclerkmobileapp.views;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +18,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,12 +34,28 @@ import com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.HomeFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.NotificationsFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.SettingsFragment;
+import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
+import com.pubnub.api.PNConfiguration;
+import com.pubnub.api.PubNub;
+import com.pubnub.api.callbacks.PNCallback;
+import com.pubnub.api.callbacks.SubscribeCallback;
+import com.pubnub.api.enums.PNStatusCategory;
+import com.pubnub.api.models.consumer.PNPublishResult;
+import com.pubnub.api.models.consumer.PNStatus;
+import com.pubnub.api.models.consumer.pubsub.PNMessageResult;
+import com.pubnub.api.models.consumer.pubsub.PNPresenceEventResult;
+
+import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
+
+import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
+
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG_PUBNUB = "pubnub";
 
     private NavigationView navigationView;
     private DrawerLayout drawer;
@@ -78,14 +96,29 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
 
         int gpsStatus = 0;
+
         try {
             gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
+        }
+
+        if (gpsStatus == 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("NOTICE");
+            builder.setMessage("Please enable GPS to allow tracking of your location");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    // Prompt to enable location.
+                    Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(onGPS);
+                }
+            });
+
         }
 
         mHandler = new Handler();
@@ -111,20 +144,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if (gpsStatus == 0) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("NOTICE");
-            builder.setMessage("Please enable GPS to allow tracking of your location");
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    // Prompt to enable location.
-                    Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    startActivity(onGPS);
-                }
-            });
-
-        }
-
         // load nav menu header data
         loadNavHeader();
 
@@ -136,6 +155,83 @@ public class MainActivity extends AppCompatActivity {
             CURRENT_TAG = TAG_HOME;
             loadHomeFragment();
         }
+
+        // ################################################################################
+        //  PUBNUB EXAMPLE
+        //###################################################################################
+        PNConfiguration pnConfiguration = new PNConfiguration();
+        pnConfiguration.setSubscribeKey(Configs.pubnub_subscribeKey);
+        pnConfiguration.setPublishKey(Configs.pubnub_publishKey);
+        PubNub pubnub = new PubNub(pnConfiguration);
+
+        // Subscribe to a channel
+        pubnub.subscribe().channels(Arrays.asList("6fecf37679")).execute();
+
+        // Listen for incoming messages
+        pubnub.addListener(new SubscribeCallback() {
+            @Override
+            public void status(PubNub pubnub, PNStatus status) {
+                if (status.getCategory() == PNStatusCategory.PNUnexpectedDisconnectCategory) {
+                    // This event happens when radio / connectivity is lost
+
+                } else if (status.getCategory() == PNStatusCategory.PNConnectedCategory) {
+                    // Connect event. You can do stuff like publish, and know you'll get it.
+                    // Or just use the connected event to confirm you are subscribed for
+                    // UI / internal notifications, etc
+
+                    if (status.getCategory() == PNStatusCategory.PNConnectedCategory){
+                        pubnub.publish().channel("6fecf37679").message("delivery").async(new PNCallback<PNPublishResult>() {
+                        @Override
+                        public void onResponse(PNPublishResult result, PNStatus status) {
+                                if (!status.isError()) {
+                                    Toast.makeText(getApplicationContext(),"Message published",Toast.LENGTH_LONG).show();
+                                }
+                                else {
+                                    }
+                                }
+                        });
+
+                    }
+                } else if (status.getCategory() == PNStatusCategory.PNReconnectedCategory) {
+                    // Happens as part of our regular operation. This event happens when
+                    // radio / connectivity is lost, then regained.
+
+                } else if (status.getCategory() == PNStatusCategory.PNDecryptionErrorCategory) {
+                    // Handle messsage decryption error. Probably client configured to
+                    // encrypt messages and on live data feed it received plain text.
+                    }
+                }
+
+            @Override
+            public void message(PubNub pubnub, PNMessageResult message) {
+                // Handle new message stored in message.message
+                if (message.getChannel() != null) {
+                    // Message has been received on channel group stored in
+                    // message.getChannel()
+                    Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
+                    System.out.println("message received: "+message.getMessage().toString());
+
+                    System.out.println(message.getMessage().toString());
+                    System.out.println(message.getMessage().toString().trim().equalsIgnoreCase("delivery"));
+
+                    // message received is "new delivery request";
+                    if (true){
+                        System.out.println("new request received");
+                    }
+
+
+
+                    } else {
+                    // Message has been received on channel stored in
+                    // message.getSubscription()
+                    }
+            }
+
+            @Override
+            public void presence(PubNub pubnub, PNPresenceEventResult presence) {
+                }
+            });
+
     }
 
     /***
@@ -300,7 +396,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.openDrawer, R.string.closeDrawer) {
 
             @Override
@@ -372,6 +467,12 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_logout) {
             Toast.makeText(getApplicationContext(), "Logout user!", Toast.LENGTH_LONG).show();
+            SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.commit();
+            Intent intent = new Intent(MainActivity.this,LoginActivity.class);
+            startActivity(intent);
             return true;
         }
 

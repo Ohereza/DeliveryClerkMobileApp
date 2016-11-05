@@ -13,4 +13,8 @@ public class Configs {
     public static String updateFcmInstanceIdUri = "/api/resource/User";
     public static String updateLocationUri = "/api/resource/Location";
 
+    // related to PubNub
+    public static String pubnub_subscribeKey = "sub-c-266bcbc0-9884-11e6-b146-0619f8945a4f";
+    public static String pubnub_publishKey = "pub-c-21663d8a-850d-4d99-adb3-3dda55a02abd";
+
 }

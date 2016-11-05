@@ -58,7 +58,6 @@ public class LocatorService
 
     private Boolean mRequestingLocationUpdates = true;
 
-    private String orderKey;
 
     @Override
     public void onCreate() {
@@ -88,7 +87,6 @@ public class LocatorService
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        orderKey = "vvvv";
         return START_NOT_STICKY;
     }
 
