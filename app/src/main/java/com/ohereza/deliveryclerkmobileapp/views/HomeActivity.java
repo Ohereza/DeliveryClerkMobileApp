@@ -106,6 +106,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Retrofit retrofit;
     private PdsAPI pdsAPI;
     private Location mCurrentLocation;
+    private int gpsStatus = 0;
 
     public HomeActivity() {
     }
@@ -121,7 +122,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        int gpsStatus = 0;
         try {
             gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
         } catch (Settings.SettingNotFoundException e) {
@@ -139,7 +139,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     startActivity(onGPS);
                 }
             });
-
+            builder.create();
+            builder.show();
         }
 
         mHandler = new Handler();
@@ -155,10 +156,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // load toolbar titles from string resources
         activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
-
-
-
-
 
         // load nav menu header data
         loadNavHeader();
@@ -409,6 +406,32 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+
+        try {
+            gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        if (gpsStatus == 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("NOTICE");
+            builder.setMessage("Please enable GPS to allow tracking of your location");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    // Prompt to enable location.
+                    Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(onGPS);
+                }
+            });
+            builder.create();
+            builder.show();
+        }
     }
 
     @Override
