@@ -7,13 +7,13 @@ import android.view.MenuItem;
 
 import com.ohereza.deliveryclerkmobileapp.R;
 
-public class PrivacyPolicyActivity extends AppCompatActivity {
+public class NotificationActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_privacy_policy);
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.privacy_toolbar);
+        setContentView(R.layout.activity_notification);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.notification_toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
