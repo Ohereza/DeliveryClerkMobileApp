@@ -4,12 +4,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -31,7 +30,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.ohereza.deliveryclerkmobileapp.R;
 import com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment;
-import com.ohereza.deliveryclerkmobileapp.fragments.HomeFragment;
+import com.ohereza.deliveryclerkmobileapp.fragments.MapFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.NotificationsFragment;
 import com.ohereza.deliveryclerkmobileapp.fragments.SettingsFragment;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
@@ -51,11 +50,7 @@ import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
-
-import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
-
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG_PUBNUB = "pubnub";
+public class HomeActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener {
 
     private NavigationView navigationView;
     private DrawerLayout drawer;
@@ -63,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imgProfile;
     private TextView txtName, txtWebsite;
     private Toolbar toolbar;
-    private FloatingActionButton fab;
 
     // urls to load navigation header background image
     // and profile image
@@ -86,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean shouldLoadHomeFragOnBackPress = true;
     private Handler mHandler;
 
- private ClearableCookieJar cookieJar;
+    private ClearableCookieJar cookieJar;
     private OkHttpClient okHttpClient;
     private Retrofit retrofit;
     private PdsAPI pdsAPI;
@@ -96,11 +90,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         int gpsStatus = 0;
-
         try {
             gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
         } catch (Settings.SettingNotFoundException e) {
@@ -143,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
 
         // load nav menu header data
         loadNavHeader();
@@ -251,9 +245,6 @@ public class MainActivity extends AppCompatActivity {
                 .bitmapTransform(new CircleTransform(this))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imgProfile);
-
-        // showing dot next to notifications label
-        navigationView.getMenu().getItem(3).setActionView(R.layout.menu_dot);
     }
 
     /***
@@ -267,20 +258,6 @@ public class MainActivity extends AppCompatActivity {
         // set toolbar title
         setToolbarTitle();
 
-        // if user select the current navigation menu again, don't do anything
-        // just close the navigation drawer
-        if (getSupportFragmentManager().findFragmentByTag(CURRENT_TAG) != null) {
-            drawer.closeDrawers();
-
-            // show or hide the fab button
-            toggleFab();
-            return;
-        }
-
-        // Sometimes, when fragment has huge data, screen seems hanging
-        // when switching between navigation menus
-        // So using runnable, the fragment is loaded with cross fade effect
-        // This effect can be seen in GMail app
         Runnable mPendingRunnable = new Runnable() {
             @Override
             public void run() {
@@ -299,8 +276,6 @@ public class MainActivity extends AppCompatActivity {
             mHandler.post(mPendingRunnable);
         }
 
-        // show or hide the fab button
-        toggleFab();
 
         //Closing drawer on item click
         drawer.closeDrawers();
@@ -313,8 +288,10 @@ public class MainActivity extends AppCompatActivity {
         switch (navItemIndex) {
             case 0:
                 // home
-                HomeFragment homeFragment = new HomeFragment();
-                return homeFragment;
+                MapFragment mapFragment = new MapFragment();
+                return mapFragment;
+                //HomeFragment homeFragment = new HomeFragment();
+                //return homeFragment;
             case 1:
                 // photos
                 HistoryFragment historyFragment = new HistoryFragment();
@@ -329,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
                 SettingsFragment settingsFragment = new SettingsFragment();
                 return settingsFragment;
             default:
-                return new HomeFragment();
+                return new MapFragment();
         }
     }
 
@@ -352,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
                 //Check to see which item was being clicked and perform appropriate action
                 switch (menuItem.getItemId()) {
                     //Replacing the main content with ContentFragment Which is our Inbox View;
-                    case R.id.home:
+                    case R.id.nav_home:
                         navItemIndex = 0;
                         CURRENT_TAG = TAG_HOME;
                         break;
@@ -368,14 +345,9 @@ public class MainActivity extends AppCompatActivity {
                         navItemIndex = 3;
                         CURRENT_TAG = TAG_SETTINGS;
                         break;
-                    case R.id.nav_about_us:
-                        // launch new intent instead of loading fragment
-                        startActivity(new Intent(MainActivity.this, AboutUsActivity.class));
-                        drawer.closeDrawers();
-                        return true;
                     case R.id.nav_privacy_policy:
                         // launch new intent instead of loading fragment
-                        startActivity(new Intent(MainActivity.this, PrivacyPolicyActivity.class));
+                        startActivity(new Intent(HomeActivity.this, PrivacyPolicyActivity.class));
                         drawer.closeDrawers();
                         return true;
                     default:
@@ -395,6 +367,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
 
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.openDrawer, R.string.closeDrawer) {
 
@@ -451,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // when fragment is notifications, load the menu created for notifications
-        if (navItemIndex == 3) {
+        if (navItemIndex == 2) {
             getMenuInflater().inflate(R.menu.notifications, menu);
         }
         return true;
@@ -491,11 +464,8 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // show or hide the fab
-    private void toggleFab() {
-        if (navItemIndex == 0)
-            fab.show();
-        else
-            fab.hide();
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+        Toast.makeText(getApplicationContext(), "Communication progressing!", Toast.LENGTH_LONG).show();
     }
 }

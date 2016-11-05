@@ -11,4 +11,10 @@
         android:alpha="0.3"
         android:src="@drawable/ic_photo_library_black_24dp" />
 
+    <TextView
+        android:text="The previous delivery will be displyed here"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView2" />
+
 </FrameLayout>

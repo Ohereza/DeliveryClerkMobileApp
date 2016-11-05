@@ -17,10 +17,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     packagingOptions {
-        pickFirst 'META-INF/license.txt'
-        pickFirst 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
     }
 }
 dependencies {
@@ -42,9 +44,6 @@ dependencies {
 
     // Glide image library
     compile 'com.github.bumptech.glide:glide:3.7.0'
-
 }
-
-
 
 apply plugin: 'com.google.gms.google-services'
