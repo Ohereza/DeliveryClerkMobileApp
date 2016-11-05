@@ -225,10 +225,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // message received is "new delivery request";
                     if (true){
                         System.out.println("new request received");
-                    }
-
-
-
+                        }
                     } else {
                     // Message has been received on channel stored in
                     // message.getSubscription()
@@ -239,7 +236,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void presence(PubNub pubnub, PNPresenceEventResult presence) {
                 }
             });
-
     }
 
     /***
@@ -259,10 +255,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imgProfile);
     }
+
 //
 //    private void selectNavMenu() {
 //        navigationView.getMenu().getItem(navItemIndex).setChecked(true);
 //    }
+
 
     private void setUpNavigationView() {
         //Setting Navigation View Item Selected Listener to handle the item click of the navigation menu
