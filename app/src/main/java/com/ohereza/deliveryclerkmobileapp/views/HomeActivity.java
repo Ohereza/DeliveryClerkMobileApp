@@ -1,16 +1,20 @@
 package com.ohereza.deliveryclerkmobileapp.views;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
-import android.net.Uri;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -28,11 +32,18 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.ohereza.deliveryclerkmobileapp.R;
-import com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment;
-import com.ohereza.deliveryclerkmobileapp.fragments.MapFragment;
-import com.ohereza.deliveryclerkmobileapp.fragments.NotificationsFragment;
-import com.ohereza.deliveryclerkmobileapp.fragments.SettingsFragment;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
@@ -50,14 +61,26 @@ import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
-public class HomeActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener {
 
+import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
+
+public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
+
+    private static final String TAG_PUBNUB = "pubnub";
     private NavigationView navigationView;
     private DrawerLayout drawer;
     private View navHeader;
     private ImageView imgProfile;
     private TextView txtName, txtWebsite;
     private Toolbar toolbar;
+
+    private GoogleMap mMap;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private Location mLastLocation;
+    private Marker marker;
 
     // urls to load navigation header background image
     // and profile image
@@ -68,9 +91,7 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
 
     // tags used to attach the fragments
     private static final String TAG_HOME = "home";
-    private static final String TAG_HISTORY = "history";
-    private static final String TAG_NOTIFICATIONS = "notifications";
-    private static final String TAG_SETTINGS = "settings";
+   
     public static String CURRENT_TAG = TAG_HOME;
 
     // toolbar titles respected to selected nav menu item
@@ -86,10 +107,17 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
     private PdsAPI pdsAPI;
     private Location mCurrentLocation;
 
+    public HomeActivity() {
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        buildGoogleApiClient();
         setContentView(R.layout.activity_main);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                  .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -118,24 +146,18 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
-        fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        // Navigation view header
+        // Navigation view header with image, name, and address
         navHeader = navigationView.getHeaderView(0);
         txtName = (TextView) navHeader.findViewById(R.id.name);
-        txtWebsite = (TextView) navHeader.findViewById(R.id.website);
+        txtWebsite = (TextView) navHeader.findViewById(R.id.address);
         imgProfile = (ImageView) navHeader.findViewById(R.id.img_profile);
 
         // load toolbar titles from string resources
         activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Kasha mail", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+
 
 
         // load nav menu header data
@@ -144,11 +166,6 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
         // initializing navigation menu
         setUpNavigationView();
 
-        if (savedInstanceState == null) {
-            navItemIndex = 0;
-            CURRENT_TAG = TAG_HOME;
-            loadHomeFragment();
-        }
 
         // ################################################################################
         //  PUBNUB EXAMPLE
@@ -231,12 +248,11 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
     /***
      * Load navigation menu header information
      * like background image, profile image
-     * name, website, notifications action view (dot)
+     * name, website
      */
     private void loadNavHeader() {
-        // name, website
-        txtName.setText("Rene Kabagamba");
-        txtWebsite.setText("www.kasha.com");
+        txtName.setText("ClerkId: Kabagamba");
+        txtWebsite.setText("addr: ibereshi");
 
         // Loading profile image
         Glide.with(this).load(urlProfileImg)
@@ -246,77 +262,10 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imgProfile);
     }
-
-    /***
-     * Returns respected fragment that user
-     * selected from navigation menu
-     */
-    private void loadHomeFragment() {
-        // selecting appropriate nav menu item
-        selectNavMenu();
-
-        // set toolbar title
-        setToolbarTitle();
-
-        Runnable mPendingRunnable = new Runnable() {
-            @Override
-            public void run() {
-                // update the main content by replacing fragments
-                Fragment fragment = getHomeFragment();
-                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
-                        android.R.anim.fade_out);
-                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG);
-                fragmentTransaction.commitAllowingStateLoss();
-            }
-        };
-
-        // If mPendingRunnable is not null, then add to the message queue
-        if (mPendingRunnable != null) {
-            mHandler.post(mPendingRunnable);
-        }
-
-
-        //Closing drawer on item click
-        drawer.closeDrawers();
-
-        // refresh toolbar menu
-        invalidateOptionsMenu();
-    }
-
-    private Fragment getHomeFragment() {
-        switch (navItemIndex) {
-            case 0:
-                // home
-                MapFragment mapFragment = new MapFragment();
-                return mapFragment;
-                //HomeFragment homeFragment = new HomeFragment();
-                //return homeFragment;
-            case 1:
-                // photos
-                HistoryFragment historyFragment = new HistoryFragment();
-                return historyFragment;
-            case 2:
-                // notifications fragment
-                NotificationsFragment notificationsFragment = new NotificationsFragment();
-                return notificationsFragment;
-
-            case 3:
-                // settings fragment
-                SettingsFragment settingsFragment = new SettingsFragment();
-                return settingsFragment;
-            default:
-                return new MapFragment();
-        }
-    }
-
-    private void setToolbarTitle() {
-        getSupportActionBar().setTitle(activityTitles[navItemIndex]);
-    }
-
-    private void selectNavMenu() {
-        navigationView.getMenu().getItem(navItemIndex).setChecked(true);
-    }
+//
+//    private void selectNavMenu() {
+//        navigationView.getMenu().getItem(navItemIndex).setChecked(true);
+//    }
 
     private void setUpNavigationView() {
         //Setting Navigation View Item Selected Listener to handle the item click of the navigation menu
@@ -329,22 +278,14 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
                 //Check to see which item was being clicked and perform appropriate action
                 switch (menuItem.getItemId()) {
                     //Replacing the main content with ContentFragment Which is our Inbox View;
-                    case R.id.nav_home:
-                        navItemIndex = 0;
-                        CURRENT_TAG = TAG_HOME;
-                        break;
                     case R.id.nav_history:
-                        navItemIndex = 1;
-                        CURRENT_TAG = TAG_HISTORY;
-                        break;
+                        startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
+                        drawer.closeDrawers();
+                        return true;
                     case R.id.nav_notifications:
-                        navItemIndex = 2;
-                        CURRENT_TAG = TAG_NOTIFICATIONS;
-                        break;
-                    case R.id.nav_settings:
-                        navItemIndex = 3;
-                        CURRENT_TAG = TAG_SETTINGS;
-                        break;
+                        startActivity(new Intent(HomeActivity.this, NotificationActivity.class));
+                        drawer.closeDrawers();
+                        return true;
                     case R.id.nav_privacy_policy:
                         // launch new intent instead of loading fragment
                         startActivity(new Intent(HomeActivity.this, PrivacyPolicyActivity.class));
@@ -362,7 +303,7 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
                 }
                 menuItem.setChecked(true);
 
-                loadHomeFragment();
+                //loadHomeFragment();
 
                 return true;
             }
@@ -406,7 +347,7 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
             if (navItemIndex != 0) {
                 navItemIndex = 0;
                 CURRENT_TAG = TAG_HOME;
-                loadHomeFragment();
+                //loadHomeFragment();
                 return;
             }
         }
@@ -437,17 +378,23 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        //Switch Online and Offline
         if (id == R.id.action_logout) {
             Toast.makeText(getApplicationContext(), "Logout user!", Toast.LENGTH_LONG).show();
             SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.clear();
             editor.commit();
-            Intent intent = new Intent(MainActivity.this,LoginActivity.class);
+            Intent intent = new Intent(this,LoginActivity.class);
             startActivity(intent);
             return true;
         }
+
+//        //switch btn off and ON
+//        if (id == R.id.action_status) {
+//            Toast.makeText(getApplicationContext(), "User Offline", Toast.LENGTH_LONG).show();
+//            return true;
+//        }
 
         // user is in notifications fragment
         // and selected 'Mark all as Read'
@@ -465,7 +412,131 @@ public class HomeActivity extends AppCompatActivity implements MapFragment.OnFra
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
-        Toast.makeText(getApplicationContext(), "Communication progressing!", Toast.LENGTH_LONG).show();
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        //mMap.getUiSettings().setMapToolbarEnabled(true);
+
+        //check if location permission is granted
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        mMap.setMyLocationEnabled(true);
+
+        Location loc = getMyLocation();
+
+        if(loc!= null) {
+            Toast toast= Toast.makeText(this, "Loc is null 1st", Toast.LENGTH_LONG);
+            LatLng myLoc = new LatLng(loc.getLatitude(), loc.getLongitude());
+            //mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLoc, 16.0f));
+        }
+
+    }
+
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        //mLocationRequest.setSmallestDisplacement(0.1F);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) this);
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+            Double lat = Double.valueOf(mLastLocation.getLatitude());
+            Double lon = Double.valueOf(mLastLocation.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 16.0f));
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+
+        //remove previous current location Marker
+        if (marker != null) {
+            marker.remove();
+        }
+
+        double dLatitude = mLastLocation.getLatitude();
+        double dLongitude = mLastLocation.getLongitude();
+
+        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(dLatitude, dLongitude)).title("My Location"));
+        //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dLatitude, dLongitude)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(dLatitude, dLongitude), 16.0f));
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    private Location getMyLocation() {
+        // Get location from GPS if it's available
+        LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast toast= Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG);
+            toast.show();
+            return null;
+        }
+        Location myLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+        // Location wasn't found, check the next most accurate place for the current location
+        if (myLocation == null) {
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            // Finds a provider that matches the criteria
+            String provider = lm.getBestProvider(criteria, true);
+            // Use the provider to get the last known location
+            myLocation = lm.getLastKnownLocation(provider);
+        }
+
+        return myLocation;
     }
 }

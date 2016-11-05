@@ -4,11 +4,11 @@
     android:layout_height="match_parent"
     tools:context="com.ohereza.deliveryclerkmobileapp.fragments.SettingsFragment">
 
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:alpha="0.3"
-        android:src="@drawable/ic_settings_black_24dp" />
+        android:id="@+id/progressBar2" />
 
 </FrameLayout>

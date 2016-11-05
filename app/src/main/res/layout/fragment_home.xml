@@ -4,17 +4,19 @@
     android:layout_height="match_parent"
     tools:context="com.ohereza.deliveryclerkmobileapp.fragments.HomeFragment">
 
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center"
-        android:alpha="0.3"
-        android:src="@drawable/ic_home_black_24dp" />
+    <!--<ImageView-->
+        <!--android:layout_width="100dp"-->
+        <!--android:layout_height="100dp"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:alpha="0.3"-->
+        <!--android:src="@drawable/ic_home_black_24dp" />-->
 
-    <TextView
-        android:text="This is suppose to be the map but don't worry it's comming..."
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView" />
+        android:layout_gravity="center"
+        android:id="@+id/progressBar2" />
+
 
 </FrameLayout>

@@ -4,17 +4,11 @@
     android:layout_height="match_parent"
     tools:context="com.ohereza.deliveryclerkmobileapp.fragments.HistoryFragment">
 
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center"
-        android:alpha="0.3"
-        android:src="@drawable/ic_photo_library_black_24dp" />
-
-    <TextView
-        android:text="The previous delivery will be displyed here"
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView2" />
+        android:layout_gravity="center"
+        android:id="@+id/progressBar2" />
 
 </FrameLayout>

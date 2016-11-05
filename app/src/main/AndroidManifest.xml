@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-package="com.ohereza.deliveryclerkmobileapp">
+    package="com.ohereza.deliveryclerkmobileapp">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
@@ -11,10 +12,8 @@ package="com.ohereza.deliveryclerkmobileapp">
     <application android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name"
     android:supportsRtl="true" android:theme="@style/AppTheme">
 
-
-
-        <activity android:name=".views.HomeActivity">
-            <!--android:theme="@style/SplashTheme">-->
+        <activity android:name=".views.SplashScreenActivity">
+            <!-- android:theme="@style/SplashTheme"> -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,24 +25,22 @@ package="com.ohereza.deliveryclerkmobileapp">
             android:name=".views.LoginActivity"
             android:label="@string/app_name" />
         <activity
-            android:name=".views.SplashScreenActivity"
+            android:name=".views.HomeActivity"
             android:label="@string/app_name" />
 
         <activity
-            android:name=".views.MainActivity"
-            android:label="@string/app_name" />
+            android:name=".views.PrivacyPolicyActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme" />
 
-        <service
-            android:name=".services.MyFirebaseMessagingService">
+        <service android:name=".services.MyFirebaseMessagingService">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
-        <service
-            android:name=".services.MyFirebaseInstanceIDService">
+        <service android:name=".services.MyFirebaseInstanceIDService">
             <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
 
@@ -51,11 +48,6 @@ package="com.ohereza.deliveryclerkmobileapp">
             android:name=".services.LocatorService"
             android:process=":locator_service" />
 
-        <activity
-            android:name="com.ohereza.deliveryclerkmobileapp.views.AboutUsActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
@@ -63,5 +55,15 @@ package="com.ohereza.deliveryclerkmobileapp">
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-</application>
+
+        <activity
+            android:name=".views.HistoryActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_history"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".views.NotificationActivity"
+            android:label="@string/nav_notifications"/>
+    </application>
+
 </manifest>

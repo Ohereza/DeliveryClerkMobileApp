@@ -8,7 +8,15 @@
         <!--app:showAsAction="never" />-->
     <item
         android:id="@+id/action_logout"
-        android:orderInCategory="100"
+        android:orderInCategory="200"
         android:title="@string/action_logout"
         app:showAsAction="never" />
+
+    <!--<item-->
+        <!--android:id="@+id/action_status"-->
+        <!--android:orderInCategory="100"-->
+        <!--android:title="Status"-->
+        <!--app:showAsAction="always"-->
+        <!--app:actionLayout="@layout/switch_status"-->
+        <!--/>-->
 </menu>
