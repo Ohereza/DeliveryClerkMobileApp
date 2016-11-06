@@ -40,9 +40,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.ohereza.deliveryclerkmobileapp.R;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
@@ -81,6 +81,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
     private Marker marker;
+
+    private LocationManager manager;
 
     // urls to load navigation header background image
     // and profile image
@@ -122,13 +124,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        try {
-            gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
-        }
+        manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
 
-        if (gpsStatus == 0) {
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("NOTICE");
             builder.setMessage("Please enable GPS to allow tracking of your location");
@@ -141,7 +139,29 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
             builder.create();
             builder.show();
+
         }
+
+//        try {
+//            gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
+//        } catch (Settings.SettingNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//
+//        if (gpsStatus == 0) {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            builder.setTitle("NOTICE");
+//            builder.setMessage("Please enable GPS to allow tracking of your location");
+//            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                public void onClick(DialogInterface dialogInterface, int i) {
+//                    // Prompt to enable location.
+//                    Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//                    startActivity(onGPS);
+//                }
+//            });
+//            builder.create();
+//            builder.show();
+//        }
 
         mHandler = new Handler();
 
@@ -412,13 +432,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onResume(){
         super.onResume();
 
-        try {
-            gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
-        }
+        manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
 
-        if (gpsStatus == 0) {
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("NOTICE");
             builder.setMessage("Please enable GPS to allow tracking of your location");
@@ -431,7 +447,31 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
             builder.create();
             builder.show();
+
         }
+        //}
+
+//        try {
+//            gpsStatus = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
+//            Toast.makeText(this,"While trying: "+gpsStatus, Toast.LENGTH_LONG);
+//        } catch (Settings.SettingNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        Toast.makeText(this,"After try: "+gpsStatus, Toast.LENGTH_LONG);
+//        if (gpsStatus == 0) {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            builder.setTitle("NOTICE");
+//            builder.setMessage("Please enable GPS to allow tracking of your location");
+//            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                public void onClick(DialogInterface dialogInterface, int i) {
+//                    // Prompt to enable location.
+//                    Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//                    startActivity(onGPS);
+//                }
+//            });
+//            builder.create();
+//            builder.show();
+//        }
     }
 
     @Override
@@ -453,11 +493,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         Location loc = getMyLocation();
 
         if(loc!= null) {
-            Toast toast= Toast.makeText(this, "Loc is null 1st", Toast.LENGTH_LONG);
-            LatLng myLoc = new LatLng(loc.getLatitude(), loc.getLongitude());
-            //mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLoc, 16.0f));
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target((new LatLng(loc.getLatitude(), loc.getLongitude())))
+                    .zoom(16)                   // Sets the zoom
+                    .bearing(90)                // Sets the orientation of the camera to east
+                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
 
     }
@@ -491,7 +533,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mLastLocation != null) {
             Double lat = Double.valueOf(mLastLocation.getLatitude());
             Double lon = Double.valueOf(mLastLocation.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 16.0f));
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(lat, lon))
+                    .zoom(16)                   // Sets the zoom
+                    .bearing(90)                // Sets the orientation of the camera to east
+                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
         }
     }
 
@@ -517,10 +566,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         double dLatitude = mLastLocation.getLatitude();
         double dLongitude = mLastLocation.getLongitude();
 
-        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(dLatitude, dLongitude)).title("My Location"));
-        //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dLatitude, dLongitude)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(dLatitude, dLongitude), 16.0f));
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(new LatLng(dLatitude, dLongitude))
+                .zoom(16)                   // Sets the zoom
+                .bearing(90)                // Sets the orientation of the camera to east
+                .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
     }
 
@@ -544,7 +596,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast toast= Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG);
+            Toast toast= Toast.makeText(this, "GPS permission denied", Toast.LENGTH_LONG);
             toast.show();
             return null;
         }
