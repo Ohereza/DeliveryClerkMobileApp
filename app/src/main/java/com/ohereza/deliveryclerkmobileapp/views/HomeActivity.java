@@ -206,12 +206,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if ( message.getMessage().toString().substring(1,16).
                             equalsIgnoreCase("A delivery task")){
                     // Handle new delivery request received
-
-
+                    //launch notification activity
+                    Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
+                    startActivity(intent);
 
                 }else{
                     // update map with client coordinates
-                    
+
 
 
                     }
