@@ -49,10 +49,8 @@ import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
 import com.pubnub.api.PNConfiguration;
 import com.pubnub.api.PubNub;
-import com.pubnub.api.callbacks.PNCallback;
 import com.pubnub.api.callbacks.SubscribeCallback;
 import com.pubnub.api.enums.PNStatusCategory;
-import com.pubnub.api.models.consumer.PNPublishResult;
 import com.pubnub.api.models.consumer.PNStatus;
 import com.pubnub.api.models.consumer.pubsub.PNMessageResult;
 import com.pubnub.api.models.consumer.pubsub.PNPresenceEventResult;
@@ -173,9 +171,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         PubNub pubnub = new PubNub(pnConfiguration);
 
         // Subscribe to a channel
-        pubnub.subscribe().channels(Arrays.asList("6fecf37679")).execute();
+        pubnub.subscribe().channels(Arrays.asList("6fecf37679","mymaps")).execute();
 
         // Listen for incoming messages
+        //pubnub.addListener(new MyPubnubListenerService());
+
         pubnub.addListener(new SubscribeCallback() {
             @Override
             public void status(PubNub pubnub, PNStatus status) {
@@ -188,17 +188,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // UI / internal notifications, etc
 
                     if (status.getCategory() == PNStatusCategory.PNConnectedCategory){
-                        pubnub.publish().channel("6fecf37679").message("delivery").async(new PNCallback<PNPublishResult>() {
-                        @Override
-                        public void onResponse(PNPublishResult result, PNStatus status) {
-                                if (!status.isError()) {
-                                    Toast.makeText(getApplicationContext(),"Message published",Toast.LENGTH_LONG).show();
-                                }
-                                else {
-                                    }
-                                }
-                        });
-
                     }
                 } else if (status.getCategory() == PNStatusCategory.PNReconnectedCategory) {
                     // Happens as part of our regular operation. This event happens when
@@ -213,22 +202,18 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void message(PubNub pubnub, PNMessageResult message) {
                 // Handle new message stored in message.message
-                if (message.getChannel() != null) {
-                    // Message has been received on channel group stored in
-                    // message.getChannel()
-                    Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
-                    System.out.println("message received: "+message.getMessage().toString());
+                Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
+                if ( message.getMessage().toString().substring(1,16).
+                            equalsIgnoreCase("A delivery task")){
+                    // Handle new delivery request received
 
-                    System.out.println(message.getMessage().toString());
-                    System.out.println(message.getMessage().toString().trim().equalsIgnoreCase("delivery"));
 
-                    // message received is "new delivery request";
-                    if (true){
-                        System.out.println("new request received");
-                        }
-                    } else {
-                    // Message has been received on channel stored in
-                    // message.getSubscription()
+
+                }else{
+                    // update map with client coordinates
+                    
+
+
                     }
             }
 

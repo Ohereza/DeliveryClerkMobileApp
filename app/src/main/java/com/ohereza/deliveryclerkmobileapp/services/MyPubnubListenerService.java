@@ -21,8 +21,17 @@ public class MyPubnubListenerService extends SubscribeCallback {
     }
     @Override
     public void message(PubNub pubnub, PNMessageResult message) {
-            Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
+        Log.v(TAG_PUBNUB, "OnChannel: "+message.getChannel()+" message("+message.getMessage()+ ")");
 
+        if (message.getChannel().toString().equalsIgnoreCase("deliveryRequests")){
+            Log.v(TAG_PUBNUB, "On delivery requests handling");
+
+
+
+        }else if(message.getChannel().toString().equalsIgnoreCase("mymaps")){
+
+
+        }
     }
 
     @Override
