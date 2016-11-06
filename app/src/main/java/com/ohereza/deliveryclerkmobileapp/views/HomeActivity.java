@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -43,6 +44,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.ohereza.deliveryclerkmobileapp.R;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
@@ -80,6 +82,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location mLastLocation;
     private Marker marker;
 
+    private PolylineOptions mPolylineOptions;
+
+    private LatLng clientLocation;
+    private LatLng myLocation;
     // urls to load navigation header background image
     // and profile image
     private static final String urlProfileImg = "https://media.licdn.com/mpr/mpr/shrinknp_200_200/p/4/000/148/278/26f545a.jpg";
@@ -203,7 +209,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void message(PubNub pubnub, PNMessageResult message) {
                 // Handle new message stored in message.message
                 Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
-                if ( message.getMessage().toString().substring(1,16).
+                if (message.getMessage().toString().substring(1, 16).
                             equalsIgnoreCase("A delivery task")){
                     // Handle new delivery request received
                     //launch notification activity
@@ -215,7 +221,36 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-                    }
+                } else {
+
+                    clientLocation = new LatLng(message.getMessage().get("lat").asDouble(), (Double) message.getMessage().get("lng").asDouble());
+                    mPolylineOptions = new PolylineOptions();
+                    mPolylineOptions.color(Color.BLUE).width(10);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            updatePolyline();
+                            updateCamera();
+                            updateMarker();
+                        }
+
+                    });
+                }
+            }
+
+            private void updatePolyline() {
+                    mMap.clear();
+                    mMap.addPolyline(mPolylineOptions.add(clientLocation));
+
+            }
+
+            private void updateMarker() {
+                mMap.addMarker(new MarkerOptions().position(clientLocation));
+            }
+
+            private void updateCamera() {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation,20));
             }
 
             @Override
@@ -438,10 +473,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if(loc!= null) {
             Toast toast= Toast.makeText(this, "Loc is null 1st", Toast.LENGTH_LONG);
-            LatLng myLoc = new LatLng(loc.getLatitude(), loc.getLongitude());
+            myLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
             //mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLoc, 16.0f));
+            //mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16.0f));
         }
 
     }
@@ -475,7 +510,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mLastLocation != null) {
             Double lat = Double.valueOf(mLastLocation.getLatitude());
             Double lon = Double.valueOf(mLastLocation.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 16.0f));
+            myLocation = new LatLng(lat, lon);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16.0f));
         }
     }
 
@@ -498,13 +534,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.remove();
         }
 
-        double dLatitude = mLastLocation.getLatitude();
-        double dLongitude = mLastLocation.getLongitude();
+        double lat = mLastLocation.getLatitude();
+        double lon = mLastLocation.getLongitude();
 
-        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(dLatitude, dLongitude)).title("My Location"));
+        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My Location"));
         //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dLatitude, dLongitude)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(dLatitude, dLongitude), 16.0f));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dLatitude, dLongitude)));
+        myLocation = new LatLng(lat, lon);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16.0f));
 
     }
 
