@@ -216,11 +216,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
                     startActivity(intent);
 
-                }else{
-                    // update map with client coordinates
-
-
-
                 } else {
 
                     clientLocation = new LatLng(message.getMessage().get("lat").asDouble(), (Double) message.getMessage().get("lng").asDouble());
@@ -250,7 +245,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             private void updateCamera() {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation,20));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation,14));
             }
 
             @Override
