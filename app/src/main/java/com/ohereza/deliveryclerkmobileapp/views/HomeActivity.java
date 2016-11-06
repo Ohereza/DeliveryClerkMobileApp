@@ -41,7 +41,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -52,10 +51,8 @@ import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
 import com.pubnub.api.PNConfiguration;
 import com.pubnub.api.PubNub;
-import com.pubnub.api.callbacks.PNCallback;
 import com.pubnub.api.callbacks.SubscribeCallback;
 import com.pubnub.api.enums.PNStatusCategory;
-import com.pubnub.api.models.consumer.PNPublishResult;
 import com.pubnub.api.models.consumer.PNStatus;
 import com.pubnub.api.models.consumer.pubsub.PNMessageResult;
 import com.pubnub.api.models.consumer.pubsub.PNPresenceEventResult;
@@ -84,6 +81,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
     private Marker marker;
+
+    private LocationManager manager;
 
     private PolylineOptions mPolylineOptions;
 
@@ -129,7 +128,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -215,16 +214,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // UI / internal notifications, etc
 
                     if (status.getCategory() == PNStatusCategory.PNConnectedCategory){
-                        pubnub.publish().channel("6fecf37679").message("delivery").async(new PNCallback<PNPublishResult>() {
-                        @Override
-                        public void onResponse(PNPublishResult result, PNStatus status) {
-                                if (!status.isError()) {
-                                    Toast.makeText(getApplicationContext(),"Message published",Toast.LENGTH_LONG).show();
-                                }
-                                else {
-                                    }
-                                }
-                        });
+
 
                     }
                 } else if (status.getCategory() == PNStatusCategory.PNReconnectedCategory) {
