@@ -1,5 +1,7 @@
 package com.ohereza.deliveryclerkmobileapp.interfaces;
 
+import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdater;
+import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdaterResponse;
 import com.ohereza.deliveryclerkmobileapp.helper.FCMInstanceUpdate;
 import com.ohereza.deliveryclerkmobileapp.helper.LocationUpdateResponse;
 import com.ohereza.deliveryclerkmobileapp.helper.LocationUpdater;
@@ -17,6 +19,7 @@ import retrofit2.http.PUT;
  */
 
 public interface PdsAPI {
+
     @FormUrlEncoded
     @POST("/api/method/login")
     Call<LoginResponse> login(@Field("usr") String username, @Field("pwd") String password);
@@ -28,8 +31,10 @@ public interface PdsAPI {
     @PUT("/api/resource/User/administrator")
     Call<FCMInstanceUpdate> updateFCMInstanceId(@Body FCMInstanceUpdate data);
 
+    @PUT("/api/resource/Delivery Request/c36606233b")
+    Call<DeliveryRequestUpdaterResponse> updateDeliveryRequest(@Body DeliveryRequestUpdater data);
+
     @POST("/api/resource/Location")
     Call<LocationUpdateResponse> updateLocation(@Body LocationUpdater data);
-
 
 }

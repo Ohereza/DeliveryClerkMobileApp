@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -43,6 +44,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.ohereza.deliveryclerkmobileapp.R;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
@@ -82,8 +85,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location mLastLocation;
     private Marker marker;
 
-    private LocationManager manager;
+    private PolylineOptions mPolylineOptions;
 
+    private LatLng clientLocation;
+    private LatLng myLocation;
     // urls to load navigation header background image
     // and profile image
     private static final String urlProfileImg = "https://media.licdn.com/mpr/mpr/shrinknp_200_200/p/4/000/148/278/26f545a.jpg";
@@ -193,9 +198,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         PubNub pubnub = new PubNub(pnConfiguration);
 
         // Subscribe to a channel
-        pubnub.subscribe().channels(Arrays.asList("6fecf37679")).execute();
+        pubnub.subscribe().channels(Arrays.asList("6fecf37679","mymaps")).execute();
 
         // Listen for incoming messages
+        //pubnub.addListener(new MyPubnubListenerService());
+
         pubnub.addListener(new SubscribeCallback() {
             @Override
             public void status(PubNub pubnub, PNStatus status) {
@@ -233,26 +240,44 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void message(PubNub pubnub, PNMessageResult message) {
                 // Handle new message stored in message.message
-                if (message.getChannel() != null) {
-                    // Message has been received on channel group stored in
-                    // message.getChannel()
-                    Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
-                    System.out.println("message received: "+message.getMessage().toString());
+                Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
+                if (message.getMessage().toString().substring(1, 16).
+                            equalsIgnoreCase("A delivery task")){
+                    // Handle new delivery request received
+                    //launch notification activity
+                    Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
+                    startActivity(intent);
 
-                    System.out.println(message.getMessage().toString());
-                    System.out.println(message.getMessage().toString().trim().equalsIgnoreCase("delivery"));
+                } else {
 
-                    // message received is "new delivery request";
-                    if (true){
-                        System.out.println("new request received");
-                    }
+                    clientLocation = new LatLng(message.getMessage().get("lat").asDouble(), (Double) message.getMessage().get("lng").asDouble());
+                    mPolylineOptions = new PolylineOptions();
+                    mPolylineOptions.color(Color.BLUE).width(10);
 
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            updatePolyline();
+                            updateCamera();
+                            updateMarker();
+                        }
 
+                    });
+                }
+            }
 
-                    } else {
-                    // Message has been received on channel stored in
-                    // message.getSubscription()
-                    }
+            private void updatePolyline() {
+                    mMap.clear();
+                    mMap.addPolyline(mPolylineOptions.add(clientLocation));
+
+            }
+
+            private void updateMarker() {
+                mMap.addMarker(new MarkerOptions().position(clientLocation));
+            }
+
+            private void updateCamera() {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation,14));
             }
 
             @Override
@@ -279,10 +304,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imgProfile);
     }
+
 //
 //    private void selectNavMenu() {
 //        navigationView.getMenu().getItem(navItemIndex).setChecked(true);
 //    }
+
 
     private void setUpNavigationView() {
         //Setting Navigation View Item Selected Listener to handle the item click of the navigation menu
@@ -493,13 +520,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         Location loc = getMyLocation();
 
         if(loc!= null) {
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target((new LatLng(loc.getLatitude(), loc.getLongitude())))
-                    .zoom(16)                   // Sets the zoom
-                    .bearing(90)                // Sets the orientation of the camera to east
-                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            Toast toast= Toast.makeText(this, "Loc is null 1st", Toast.LENGTH_LONG);
+            myLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
+            //mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
+            //mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16.0f));
         }
 
     }
@@ -533,14 +558,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mLastLocation != null) {
             Double lat = Double.valueOf(mLastLocation.getLatitude());
             Double lon = Double.valueOf(mLastLocation.getLongitude());
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(lat, lon))
-                    .zoom(16)                   // Sets the zoom
-                    .bearing(90)                // Sets the orientation of the camera to east
-                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
+            myLocation = new LatLng(lat, lon);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16.0f));
         }
     }
 
@@ -563,16 +582,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.remove();
         }
 
-        double dLatitude = mLastLocation.getLatitude();
-        double dLongitude = mLastLocation.getLongitude();
+        double lat = mLastLocation.getLatitude();
+        double lon = mLastLocation.getLongitude();
 
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(dLatitude, dLongitude))
-                .zoom(16)                   // Sets the zoom
-                .bearing(90)                // Sets the orientation of the camera to east
-                .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                .build();                   // Creates a CameraPosition from the builder
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My Location"));
+        //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dLatitude, dLongitude)));
+        myLocation = new LatLng(lat, lon);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16.0f));
 
     }
 
@@ -596,7 +613,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast toast= Toast.makeText(this, "GPS permission denied", Toast.LENGTH_LONG);
+            Toast toast= Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG);
             toast.show();
             return null;
         }

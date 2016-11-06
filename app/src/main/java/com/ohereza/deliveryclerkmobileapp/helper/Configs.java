@@ -12,6 +12,7 @@ public class Configs {
     public static String loginRelatedUri = "/api/method/login";
     public static String updateFcmInstanceIdUri = "/api/resource/User";
     public static String updateLocationUri = "/api/resource/Location";
+    public static String updateDeliveryRequestStatusUri = "/api/resource/Delivery Request/";
 
     // related to PubNub
     public static String pubnub_subscribeKey = "sub-c-266bcbc0-9884-11e6-b146-0619f8945a4f";
