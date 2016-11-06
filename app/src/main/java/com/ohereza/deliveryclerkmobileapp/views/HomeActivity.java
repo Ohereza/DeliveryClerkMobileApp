@@ -240,7 +240,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 } else {
 
-                    clientLocation = new LatLng(message.getMessage().get("lat").asDouble(), (Double) message.getMessage().get("lng").asDouble());
+                    String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
+                    double lat = Double.parseDouble(latLon.split(",")[0]);
+                    double lon = Double.parseDouble(latLon.split(",")[1]);
+
+                    clientLocation = new LatLng(lat, lon);
                     mPolylineOptions = new PolylineOptions();
                     mPolylineOptions.color(Color.BLUE).width(10);
 
