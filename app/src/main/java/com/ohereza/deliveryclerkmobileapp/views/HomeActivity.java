@@ -97,7 +97,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // tags used to attach the fragments
     private static final String TAG_HOME = "home";
-   
+
     public static String CURRENT_TAG = TAG_HOME;
 
     // toolbar titles respected to selected nav menu item
@@ -114,15 +114,19 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location mCurrentLocation;
     private int gpsStatus = 0;
 
+    //by default zoom to the clerk location
+    private boolean zoomToClient = true;
+
     public HomeActivity() {
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         buildGoogleApiClient();
         setContentView(R.layout.activity_main);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                  .findFragmentById(R.id.map);
+                .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -130,7 +134,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("NOTICE");
             builder.setMessage("Please enable GPS to allow tracking of your location");
@@ -197,7 +201,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         PubNub pubnub = new PubNub(pnConfiguration);
 
         // Subscribe to a channel
-        pubnub.subscribe().channels(Arrays.asList("6fecf37679","mymaps")).execute();
+        pubnub.subscribe().channels(Arrays.asList("6fecf37679", "mymaps")).execute();
 
         // Listen for incoming messages
         //pubnub.addListener(new MyPubnubListenerService());
@@ -213,7 +217,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // Or just use the connected event to confirm you are subscribed for
                     // UI / internal notifications, etc
 
-                    if (status.getCategory() == PNStatusCategory.PNConnectedCategory){
+                    if (status.getCategory() == PNStatusCategory.PNConnectedCategory) {
 
 
                     }
@@ -224,22 +228,22 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 } else if (status.getCategory() == PNStatusCategory.PNDecryptionErrorCategory) {
                     // Handle messsage decryption error. Probably client configured to
                     // encrypt messages and on live data feed it received plain text.
-                    }
                 }
+            }
 
             @Override
             public void message(PubNub pubnub, PNMessageResult message) {
                 // Handle new message stored in message.message
                 Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
                 if (message.getMessage().toString().substring(1, 16).
-                            equalsIgnoreCase("A delivery task")){
+                        equalsIgnoreCase("A delivery task")) {
                     // Handle new delivery request received
                     //launch notification activity
                     Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
                     startActivity(intent);
 
                 } else {
-
+                    zoomToClient = false;
                     String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
                     double lat = Double.parseDouble(latLon.split(",")[0]);
                     double lon = Double.parseDouble(latLon.split(",")[1]);
@@ -261,8 +265,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             private void updatePolyline() {
-                    mMap.clear();
-                    mMap.addPolyline(mPolylineOptions.add(clientLocation));
+                mMap.clear();
+                mMap.addPolyline(mPolylineOptions.add(clientLocation));
 
             }
 
@@ -271,13 +275,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             private void updateCamera() {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation,14));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation, 14));
             }
 
             @Override
             public void presence(PubNub pubnub, PNPresenceEventResult presence) {
-                }
-            });
+            }
+        });
 
     }
 
@@ -423,7 +427,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.clear();
             editor.commit();
-            Intent intent = new Intent(this,LoginActivity.class);
+            Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             return true;
         }
@@ -450,12 +454,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
 
-        manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("NOTICE");
             builder.setMessage("Please enable GPS to allow tracking of your location");
@@ -468,7 +472,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
             builder.create();
             builder.show();
-
         }
         //}
 
@@ -513,8 +516,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Location loc = getMyLocation();
 
-        if(loc!= null) {
-            Toast toast= Toast.makeText(this, "Loc is null 1st", Toast.LENGTH_LONG);
+        if (loc != null) {
+            Toast toast = Toast.makeText(this, "Loc is null 1st", Toast.LENGTH_LONG);
             myLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
             //mMap.addMarker(new MarkerOptions().position(myLoc).title("My auto loc"));
             //mMap.moveCamera(CameraUpdateFactory.newLatLng(myLoc));
@@ -579,11 +582,21 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lat = mLastLocation.getLatitude();
         double lon = mLastLocation.getLongitude();
 
-        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My Location"));
-        //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dLatitude, dLongitude)));
         myLocation = new LatLng(lat, lon);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16.0f));
+
+        marker = mMap.addMarker(new MarkerOptions().position(myLocation).title("My Location"));
+        //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
+        if (zoomToClient) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(myLocation));
+            //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation);
+        } else {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            mMap.setMyLocationEnabled(true);
+        }
 
     }
 
