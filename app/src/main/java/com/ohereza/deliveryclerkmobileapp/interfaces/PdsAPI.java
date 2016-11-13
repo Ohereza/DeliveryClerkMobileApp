@@ -13,6 +13,7 @@ import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 /**
  * Created by rkabagamba on 10/9/2016.
@@ -31,8 +32,9 @@ public interface PdsAPI {
     @PUT("/api/resource/User/administrator")
     Call<FCMInstanceUpdate> updateFCMInstanceId(@Body FCMInstanceUpdate data);
 
-    @PUT("/api/resource/Delivery Request/c36606233b")
-    Call<DeliveryRequestUpdaterResponse> updateDeliveryRequest(@Body DeliveryRequestUpdater data);
+    @PUT("/api/resource/Delivery Request/{req_id}")
+    Call<DeliveryRequestUpdaterResponse> updateDeliveryRequest(@Path("req_id") String request_id,
+                                                               @Body DeliveryRequestUpdater data);
 
     @POST("/api/resource/Location")
     Call<LocationUpdateResponse> updateLocation(@Body LocationUpdater data);

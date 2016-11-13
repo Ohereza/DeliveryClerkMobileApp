@@ -83,7 +83,7 @@ public class NotificationActivity extends AppCompatActivity {
                     public void onResponse(Call<LoginResponse> call,
                                            Response<LoginResponse> response){
 
-                        pdsAPI.updateDeliveryRequest( new DeliveryRequestUpdater("Assigned")).enqueue(
+                        pdsAPI.updateDeliveryRequest( "c36606233b", new DeliveryRequestUpdater("Assigned")).enqueue(
                                 new Callback<DeliveryRequestUpdaterResponse>() {
                                     @Override
                                     public void onResponse(Call<DeliveryRequestUpdaterResponse> call,

@@ -44,7 +44,7 @@ public class LocatorService
         extends Service
         implements  GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener{
+        com.google.android.gms.location.LocationListener {
 
     private static final String TAG = "LocatorService";
 

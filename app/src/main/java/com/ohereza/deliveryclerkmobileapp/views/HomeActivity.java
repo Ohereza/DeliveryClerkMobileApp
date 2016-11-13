@@ -49,6 +49,7 @@ import com.ohereza.deliveryclerkmobileapp.R;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
+import com.ohereza.deliveryclerkmobileapp.services.MyPubnubListenerService;
 import com.pubnub.api.PNConfiguration;
 import com.pubnub.api.PubNub;
 import com.pubnub.api.callbacks.SubscribeCallback;
@@ -204,7 +205,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         pubnub.subscribe().channels(Arrays.asList("6fecf37679", "mymaps")).execute();
 
         // Listen for incoming messages
-        //pubnub.addListener(new MyPubnubListenerService());
+        pubnub.addListener(new MyPubnubListenerService());
 
         pubnub.addListener(new SubscribeCallback() {
             @Override
@@ -236,7 +237,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Handle new message stored in message.message
                 Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
                 if (message.getMessage().toString().substring(1, 16).
-                        equalsIgnoreCase("A delivery task")) {
+                        equalsIgnoreCase("Delivery Request")) {
                     // Handle new delivery request received
                     //launch notification activity
                     Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
