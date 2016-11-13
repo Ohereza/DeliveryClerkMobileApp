@@ -1,7 +1,9 @@
 package com.ohereza.deliveryclerkmobileapp.views;
 
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -37,6 +39,8 @@ public class NotificationActivity extends AppCompatActivity {
     private PdsAPI pdsAPI;
     private Location mCurrentLocation;
 
+    private Vibrator vibrator;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,11 +53,17 @@ public class NotificationActivity extends AppCompatActivity {
         acceptButton = (Button) findViewById(R.id.accept_button);
         rejectButton = (Button) findViewById(R.id.reject_button);
 
+        // Vibrator
+        vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+        long pattern[] = {60,120,180,240,300,360,420,480};
+        vibrator.vibrate(pattern, 1);
+
+
 
         acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                vibrator.cancel();
                 cookieJar = new PersistentCookieJar(new SetCookieCache(),
                         new SharedPrefsCookiePersistor(getApplicationContext()));
                 okHttpClient = new OkHttpClient.Builder()
@@ -102,6 +112,7 @@ public class NotificationActivity extends AppCompatActivity {
         rejectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                vibrator.cancel();
                 finish();
             }
         });
