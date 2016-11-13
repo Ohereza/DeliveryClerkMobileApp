@@ -242,39 +242,44 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
                     startActivity(intent);
 
-                } else {
-                    zoomToClient = false;
-                    String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
-                    double lat = Double.parseDouble(latLon.split(",")[0]);
-                    double lon = Double.parseDouble(latLon.split(",")[1]);
+                } else if(message.getMessage().toString().toLowerCase().contains("latlng")) {
+                    try {
+                        zoomToClient = false;
+                        String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
+                        double lat = Double.parseDouble(latLon.split(",")[0]);
+                        double lon = Double.parseDouble(latLon.split(",")[1]);
 
-                    clientLocation = new LatLng(lat, lon);
-                    mPolylineOptions = new PolylineOptions();
-                    mPolylineOptions.color(Color.BLUE).width(10);
+                        clientLocation = new LatLng(lat, lon);
+                        mPolylineOptions = new PolylineOptions();
+                        mPolylineOptions.color(Color.BLUE).width(10);
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            updatePolyline();
-                            updateCamera();
-                            updateMarker();
-                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                updatePolyline();
+                                updateCamera();
+                                updateMarker();
+                            }
 
-                    });
+                        });
+
+                    } catch (Exception e) {
+
+                    }
                 }
             }
 
-            private void updatePolyline() {
+            private synchronized void updatePolyline() {
                 mMap.clear();
                 mMap.addPolyline(mPolylineOptions.add(clientLocation));
 
             }
 
-            private void updateMarker() {
+            private synchronized void updateMarker() {
                 mMap.addMarker(new MarkerOptions().position(clientLocation));
             }
 
-            private void updateCamera() {
+            private synchronized void updateCamera() {
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation, 14));
             }
 
