@@ -194,7 +194,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // ################################################################################
         //  PUBNUB EXAMPLE
-        //###################################################################################
+        //#################################################################################
         PNConfiguration pnConfiguration = new PNConfiguration();
         pnConfiguration.setSubscribeKey(Configs.pubnub_subscribeKey);
         pnConfiguration.setPublishKey(Configs.pubnub_publishKey);
