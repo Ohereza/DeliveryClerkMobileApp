@@ -325,6 +325,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         startActivity(new Intent(HomeActivity.this, NotificationActivity.class));
                         drawer.closeDrawers();
                         return true;
+                    case R.id.nav_picked:
+                        startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
+                        drawer.closeDrawers();
+                        return true;
                     case R.id.nav_privacy_policy:
                         // launch new intent instead of loading fragment
                         startActivity(new Intent(HomeActivity.this, PrivacyPolicyActivity.class));
