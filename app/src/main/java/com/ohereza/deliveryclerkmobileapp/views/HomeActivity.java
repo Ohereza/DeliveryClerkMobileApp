@@ -46,24 +46,28 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.ohereza.deliveryclerkmobileapp.R;
-import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
+import com.ohereza.deliveryclerkmobileapp.other.MyApplication;
+import com.ohereza.deliveryclerkmobileapp.services.LocatorService;
 import com.ohereza.deliveryclerkmobileapp.services.MyPubnubListenerService;
-import com.pubnub.api.PNConfiguration;
 import com.pubnub.api.PubNub;
 import com.pubnub.api.callbacks.SubscribeCallback;
-import com.pubnub.api.enums.PNStatusCategory;
 import com.pubnub.api.models.consumer.PNStatus;
 import com.pubnub.api.models.consumer.pubsub.PNMessageResult;
 import com.pubnub.api.models.consumer.pubsub.PNPresenceEventResult;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 
+import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
 import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
+import static com.ohereza.deliveryclerkmobileapp.helper.Configs.pubnub;
 
 public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -118,11 +122,15 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     //by default zoom to the clerk location
     private boolean zoomToClient = true;
 
+    private SharedPreferences sharedPreferences;
+    private String username;
+
     public HomeActivity() {
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         buildGoogleApiClient();
         setContentView(R.layout.activity_main);
@@ -192,81 +200,64 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         // initializing navigation menu
         setUpNavigationView();
 
+        // Find logged in user
+        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+        username = sharedPreferences.getString("usr",null);
 
-        // ################################################################################
-        //  PUBNUB EXAMPLE
-        //#################################################################################
-        PNConfiguration pnConfiguration = new PNConfiguration();
-        pnConfiguration.setSubscribeKey(Configs.pubnub_subscribeKey);
-        pnConfiguration.setPublishKey(Configs.pubnub_publishKey);
-        PubNub pubnub = new PubNub(pnConfiguration);
-
-        // Subscribe to a channel
-        pubnub.subscribe().channels(Arrays.asList("6fecf37679", "mymaps")).execute();
+        // Pubnub subscribe to a channel
+        pubnub.subscribe().channels(Arrays.asList(username)).execute();
 
         // Listen for incoming messages
-        pubnub.addListener(new MyPubnubListenerService());
+        //pubnub.addListener(new MyPubnubListenerService());
 
         pubnub.addListener(new SubscribeCallback() {
             @Override
             public void status(PubNub pubnub, PNStatus status) {
-                if (status.getCategory() == PNStatusCategory.PNUnexpectedDisconnectCategory) {
-                    // This event happens when radio / connectivity is lost
-
-                } else if (status.getCategory() == PNStatusCategory.PNConnectedCategory) {
-                    // Connect event. You can do stuff like publish, and know you'll get it.
-                    // Or just use the connected event to confirm you are subscribed for
-                    // UI / internal notifications, etc
-
-                    if (status.getCategory() == PNStatusCategory.PNConnectedCategory) {
-
-
-                    }
-                } else if (status.getCategory() == PNStatusCategory.PNReconnectedCategory) {
-                    // Happens as part of our regular operation. This event happens when
-                    // radio / connectivity is lost, then regained.
-
-                } else if (status.getCategory() == PNStatusCategory.PNDecryptionErrorCategory) {
-                    // Handle messsage decryption error. Probably client configured to
-                    // encrypt messages and on live data feed it received plain text.
-                }
             }
 
             @Override
             public void message(PubNub pubnub, PNMessageResult message) {
                 // Handle new message stored in message.message
                 Log.v(TAG_PUBNUB, "message(" + message.getMessage() + ")");
-                if (message.getMessage().toString().substring(1, 16).
-                        equalsIgnoreCase("Delivery Request")) {
-                    // Handle new delivery request received
-                    //launch notification activity
-                    Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
-                    startActivity(intent);
+                // {"order_id":"f88d553b6b","type":"Delivery Request"}
+                JSONObject jsonRequest = null;
 
-                } else if(message.getMessage().toString().toLowerCase().contains("latlng")) {
-                    try {
-                        zoomToClient = false;
-                        String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
-                        double lat = Double.parseDouble(latLon.split(",")[0]);
-                        double lon = Double.parseDouble(latLon.split(",")[1]);
+                try {
+                    jsonRequest = new JSONObject(String.valueOf(message.getMessage()));
+                    Log.v(TAG_PUBNUB, "json object: "+jsonRequest);
 
-                        clientLocation = new LatLng(lat, lon);
-                        mPolylineOptions = new PolylineOptions();
-                        mPolylineOptions.color(Color.BLUE).width(10);
+                    if (jsonRequest != null && jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
+                        // Handle new delivery request received
+                        // launch notification activity
+                        Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
+                        intent.putExtra("order_id", jsonRequest.getString("order_id"));
+                        startActivity(intent);
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                updatePolyline();
-                                updateCamera();
-                                updateMarker();
-                            }
+                    } else if(message.getMessage().toString().toLowerCase().contains("latlng")) {
 
-                        });
+                            zoomToClient = false;
+                            String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
+                            double lat = Double.parseDouble(latLon.split(",")[0]);
+                            double lon = Double.parseDouble(latLon.split(",")[1]);
 
-                    } catch (Exception e) {
+                            clientLocation = new LatLng(lat, lon);
+                            mPolylineOptions = new PolylineOptions();
+                            mPolylineOptions.color(Color.BLUE).width(10);
 
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    updatePolyline();
+                                    updateCamera();
+                                    updateMarker();
+                                }
+
+                            });
                     }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -428,13 +419,21 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //Switch Online and Offline
         if (id == R.id.action_logout) {
-            Toast.makeText(getApplicationContext(), "Logout user!", Toast.LENGTH_LONG).show();
-            SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+            Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_LONG).show();
+            // clear saved credentials
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.clear();
             editor.commit();
+            // stop running locator service
+            Intent locationServiceIntent = new Intent(this,
+                    LocatorService.class);
+            stopService(locationServiceIntent);
+            // Go back to log in screen
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
+
+            finish();
+
             return true;
         }
 
@@ -459,9 +458,23 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         return super.onOptionsItemSelected(item);
     }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApplication.mapActivityPaused();
+
+        // start pubnub service
+        Intent service = new Intent(getApplicationContext(), MyPubnubListenerService.class);
+        startWakefulService(getApplicationContext(), service);
+
+    }
+
+
     @Override
     public void onResume() {
         super.onResume();
+        MyApplication.mapActivityResumed();
 
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 

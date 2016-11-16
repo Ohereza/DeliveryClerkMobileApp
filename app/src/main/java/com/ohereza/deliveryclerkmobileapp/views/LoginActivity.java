@@ -117,9 +117,13 @@ public class LoginActivity extends AppCompatActivity {
                                                     sharedPreferences.getString("FCM_Token", null));
                                 }*/
 
+                                // create pubnub object
+
+
+
                                 // start locator service
                                 Intent locationServiceIntent = new Intent(LoginActivity.this,
-                                                                            LocatorService.class);
+                                        LocatorService.class);
                                 startService(locationServiceIntent);
 
                                 //launch main activity
@@ -135,7 +139,7 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(Call<LoginResponse> call, Throwable t) {
                             Toast.makeText(getApplicationContext(),
-                                    R.string.login_error_msg,Toast.LENGTH_LONG).show();
+                                    R.string.no_connection_msg,Toast.LENGTH_LONG).show();
                         }
                     });
 

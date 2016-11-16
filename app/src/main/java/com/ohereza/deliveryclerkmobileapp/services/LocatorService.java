@@ -2,6 +2,7 @@ package com.ohereza.deliveryclerkmobileapp.services;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -36,6 +37,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
+
 /**
  * Created by rkabagamba on 10/29/2016.
  */
@@ -57,7 +60,9 @@ public class LocatorService
     PdsAPI pdsAPI;
 
     private Boolean mRequestingLocationUpdates = true;
-
+    private SharedPreferences sharedPreferences;
+    private String usr;
+    private String pwd;
 
     @Override
     public void onCreate() {
@@ -83,6 +88,10 @@ public class LocatorService
             locationWebService.execute(mLastLocation);
         }
 
+        // Find logged in user
+        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+        usr = sharedPreferences.getString("usr",null);
+        pwd = sharedPreferences.getString("pwd",null);
     }
 
     @Override
@@ -203,12 +212,12 @@ public class LocatorService
 
             pdsAPI = retrofit.create(PdsAPI.class);
 
-            pdsAPI.login("Administrator", "pds").enqueue(new Callback<LoginResponse>() {
+            pdsAPI.login(usr, pwd).enqueue(new Callback<LoginResponse>() {
                 @Override
                 public void onResponse(Call<LoginResponse> call,
                                        Response<LoginResponse> response){
 
-                    pdsAPI.updateLocation( new LocationUpdater("Delivery Clerk",
+                    pdsAPI.updateLocation( new LocationUpdater("Delivery Clerk", usr,
                             String.valueOf(mCurrentLocation.getLongitude()),
                             String.valueOf(mCurrentLocation.getLatitude()))).enqueue(
                             new Callback<LocationUpdateResponse>() {

@@ -16,11 +16,14 @@ public class LocationUpdater {
     public String longitude;
     @Expose
     public String latitude;
+    @Expose
+    public String username;
 
 
-    public LocationUpdater( String mtype, String mlongitude, String mlatitude) {
+    public LocationUpdater( String mtype, String mUsername, String mlongitude, String mlatitude) {
 
         type = mtype;
+        username = mUsername;
         longitude = mlongitude;
         latitude = mlatitude;
 

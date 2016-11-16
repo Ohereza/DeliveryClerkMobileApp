@@ -40,6 +40,7 @@ public class NotificationActivity extends AppCompatActivity {
     private Location mCurrentLocation;
 
     private Vibrator vibrator;
+    private String order_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +59,7 @@ public class NotificationActivity extends AppCompatActivity {
         long pattern[] = {60,120,180,240,300,360,420,480};
         vibrator.vibrate(pattern, 1);
 
-
+        order_id = getIntent().getStringExtra("order_id");
 
         acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,7 +84,7 @@ public class NotificationActivity extends AppCompatActivity {
                     public void onResponse(Call<LoginResponse> call,
                                            Response<LoginResponse> response){
 
-                        pdsAPI.updateDeliveryRequest( "c36606233b", new DeliveryRequestUpdater("Assigned")).enqueue(
+                        pdsAPI.updateDeliveryRequest( order_id, new DeliveryRequestUpdater("Assigned")).enqueue(
                                 new Callback<DeliveryRequestUpdaterResponse>() {
                                     @Override
                                     public void onResponse(Call<DeliveryRequestUpdaterResponse> call,

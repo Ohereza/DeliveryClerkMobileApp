@@ -47,6 +47,7 @@
         <service
             android:name=".services.LocatorService"
             android:process=":locator_service" />
+        <service android:name=".services.MyPubnubListenerService" />
 
 
         <meta-data
