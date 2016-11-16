@@ -90,8 +90,7 @@ public class NotificationActivity extends AppCompatActivity {
                                     public void onResponse(Call<DeliveryRequestUpdaterResponse> call,
                                                            Response<DeliveryRequestUpdaterResponse> response){
                                         Toast.makeText(getApplicationContext(),
-                                                "Request successfully accepted",
-                                                Toast.LENGTH_LONG).show();
+                                                "Request successfully accepted", Toast.LENGTH_LONG).show();
                                         finish();
 
                                     }
