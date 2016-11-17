@@ -288,8 +288,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * name, website
      */
     private void loadNavHeader() {
-        txtName.setText("ClerkId: Kabagamba");
-        txtWebsite.setText("addr: ibereshi");
+        txtName.setText("ClerkId: "+username);
+        txtWebsite.setText("");
 
         // Loading profile image
         Glide.with(this).load(urlProfileImg)
