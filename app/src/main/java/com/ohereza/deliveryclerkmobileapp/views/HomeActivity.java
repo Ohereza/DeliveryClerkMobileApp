@@ -33,6 +33,9 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
+import com.franmontiel.persistentcookiejar.PersistentCookieJar;
+import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
+import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -46,6 +49,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.ohereza.deliveryclerkmobileapp.R;
+import com.ohereza.deliveryclerkmobileapp.helper.Configs;
+import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdater;
+import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdaterResponse;
+import com.ohereza.deliveryclerkmobileapp.helper.LoginResponse;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
 import com.ohereza.deliveryclerkmobileapp.other.MyApplication;
@@ -63,7 +70,11 @@ import org.json.JSONObject;
 import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
 import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
@@ -93,6 +104,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LatLng clientLocation;
     private LatLng myLocation;
+
     // urls to load navigation header background image
     // and profile image
     private static final String urlProfileImg = "https://media.licdn.com/mpr/mpr/shrinknp_200_200/p/4/000/148/278/26f545a.jpg";
@@ -230,7 +242,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // Handle new delivery request received
                         // launch notification activity
                         Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
-                        intent.putExtra("order_id", jsonRequest.getString("order_id"));
+
+                        // update sharedPreferences with the order_id
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("order_id",jsonRequest.getString("order_id"));
+                        editor.commit();
+                        //intent.putExtra("order_id", jsonRequest.getString("order_id"));
                         startActivity(intent);
 
                     } else if(message.getMessage().toString().toLowerCase().contains("latlng")) {
@@ -326,7 +343,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         drawer.closeDrawers();
                         return true;
                     case R.id.nav_picked:
-                        startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
+                        updateDeliveryRequestToDelivering();
+                        //startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
                         drawer.closeDrawers();
                         return true;
                     case R.id.nav_privacy_policy:
@@ -441,6 +459,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             return true;
         }
 
+
+
+
 //        //switch btn off and ON
 //        if (id == R.id.action_status) {
 //            Toast.makeText(getApplicationContext(), "User Offline", Toast.LENGTH_LONG).show();
@@ -460,6 +481,51 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateDeliveryRequestToDelivering(){
+
+        cookieJar = new PersistentCookieJar(new SetCookieCache(),
+                new SharedPrefsCookiePersistor(getApplicationContext()));
+        okHttpClient = new OkHttpClient.Builder()
+                .cookieJar(cookieJar)
+                .build();
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Configs.serverAddress)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build();
+
+        pdsAPI = retrofit.create(PdsAPI.class);
+
+        pdsAPI.login("Administrator", "pds").enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call,
+                                   Response<LoginResponse> response){
+
+                pdsAPI.updateDeliveryRequest( sharedPreferences.getString("order_id",null),
+                        new DeliveryRequestUpdater("Delivering")).enqueue(
+                        new Callback<DeliveryRequestUpdaterResponse>() {
+                            @Override
+                            public void onResponse(Call<DeliveryRequestUpdaterResponse> call,
+                                                   Response<DeliveryRequestUpdaterResponse> response){
+                                Toast.makeText(getApplicationContext(),
+                                        "Request successfully accepted", Toast.LENGTH_LONG).show();
+                                finish();
+                            }
+
+                            @Override
+                            public void onFailure(Call<DeliveryRequestUpdaterResponse> call, Throwable t){
+                            }
+                        }
+                );
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+            }
+        });
     }
 
 

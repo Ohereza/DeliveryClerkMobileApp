@@ -43,9 +43,7 @@ import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
  * Created by rkabagamba on 10/29/2016.
  */
 
-public class LocatorService
-        extends Service
-        implements  GoogleApiClient.ConnectionCallbacks,
+public class LocatorService extends Service implements  GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener {
 

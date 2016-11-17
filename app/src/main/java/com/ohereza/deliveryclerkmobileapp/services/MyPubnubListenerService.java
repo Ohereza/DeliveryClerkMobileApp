@@ -8,6 +8,7 @@ import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
+import com.ohereza.deliveryclerkmobileapp.other.MyApplication;
 import com.ohereza.deliveryclerkmobileapp.views.NotificationActivity;
 import com.pubnub.api.PNConfiguration;
 import com.pubnub.api.PubNub;
@@ -70,8 +71,7 @@ public class MyPubnubListenerService extends IntentService {
     protected void onHandleIntent(Intent intent) {
 
         // Listen for incoming messages
-        //pubnub.addListener(new MyPubnubListenerService());
-        pubnub.addListener(new SubscribeCallback() {
+       pubnub.addListener(new SubscribeCallback() {
             @Override
             public void status(PubNub pubnub, PNStatus status) {
                 if (status.getCategory() == PNStatusCategory.PNUnexpectedDisconnectCategory) {
@@ -93,28 +93,36 @@ public class MyPubnubListenerService extends IntentService {
 
             @Override
             public void message(PubNub pubnub, PNMessageResult message) {
-                // Handle new message stored in message.message
-                Log.v(TAG_PUBNUBLISTENER, "message(" + message.getMessage() + ")");
-                // {"order_id":"f88d553b6b","type":"Delivery Request"}
-                JSONObject jsonRequest = null;
 
-                try {
-                    jsonRequest = new JSONObject(String.valueOf(message.getMessage()));
-                    Log.v(TAG_PUBNUBLISTENER, "json object: "+jsonRequest);
+                if ( ! MyApplication.isMapActivityVisible() ) {
+                    // Handle new message stored in message.message
+                    Log.v(TAG_PUBNUBLISTENER, "message(" + message.getMessage() + ")");
+                    // {"order_id":"f88d553b6b","type":"Delivery Request"}
+                    JSONObject jsonRequest = null;
 
-                    if (jsonRequest != null && jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
-                        // Handle new delivery request received
-                        // launch notification activity
-                        Intent intent = new Intent(MyPubnubListenerService.this, NotificationActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.putExtra("order_id", jsonRequest.getString("order_id"));
-                        startActivity(intent);
+                    try {
+                        jsonRequest = new JSONObject(String.valueOf(message.getMessage()));
+                        Log.v(TAG_PUBNUBLISTENER, "json object: " + jsonRequest);
 
+                        if (jsonRequest != null && jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
+                            // Handle new delivery request received
+                            // launch notification activity
+                            Intent intent = new Intent(MyPubnubListenerService.this, NotificationActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.putExtra("order_id", jsonRequest.getString("order_id"));
+                            startActivity(intent);
+
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
+
+                } else {
+                    // if the map is visible don't handle
+                    // pubnub requests from here.
+                    stopSelf();
                 }
             }
 
@@ -122,6 +130,5 @@ public class MyPubnubListenerService extends IntentService {
             public void presence(PubNub pubnub, PNPresenceEventResult presence) {
             }
         });
-
     }
 }

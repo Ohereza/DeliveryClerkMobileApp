@@ -1,6 +1,7 @@
 package com.ohereza.deliveryclerkmobileapp.views;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -29,6 +30,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.ohereza.deliveryclerkmobileapp.helper.Configs.PREFS_NAME;
+
 public class NotificationActivity extends AppCompatActivity {
 
     private Button acceptButton;
@@ -38,6 +41,7 @@ public class NotificationActivity extends AppCompatActivity {
     private Retrofit retrofit;
     private PdsAPI pdsAPI;
     private Location mCurrentLocation;
+    private SharedPreferences sharedPreferences;
 
     private Vibrator vibrator;
     private String order_id;
@@ -59,7 +63,9 @@ public class NotificationActivity extends AppCompatActivity {
         long pattern[] = {60,120,180,240,300,360,420,480};
         vibrator.vibrate(pattern, 1);
 
-        order_id = getIntent().getStringExtra("order_id");
+        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+        order_id = sharedPreferences.getString("order_id",null);
+        //order_id = getIntent().getStringExtra("order_id");
 
         acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,7 +96,8 @@ public class NotificationActivity extends AppCompatActivity {
                                     public void onResponse(Call<DeliveryRequestUpdaterResponse> call,
                                                            Response<DeliveryRequestUpdaterResponse> response){
                                         Toast.makeText(getApplicationContext(),
-                                                "Request successfully accepted", Toast.LENGTH_LONG).show();
+                                                "Request successfully accepted",
+                                                Toast.LENGTH_LONG).show();
                                         finish();
 
                                     }

@@ -15,7 +15,7 @@
         <item
             android:id="@+id/nav_picked"
             android:icon="@drawable/ic_menu_send"
-            android:title="@string/nav_notifications" />
+            android:title="@string/nav_started_delivering" />
     </group>
 
     <item android:title="Other">
