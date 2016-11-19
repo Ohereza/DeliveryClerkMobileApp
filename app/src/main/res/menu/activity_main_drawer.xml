@@ -7,23 +7,29 @@
             android:icon="@drawable/ic_photo_library_black_24dp"
             android:title="@string/nav_history" />
 
-        <item
-            android:id="@+id/nav_notifications"
-            android:icon="@drawable/ic_notifications_black_24dp"
-            android:title="@string/nav_notifications" />
+<!--        <item
+        android:id="@+id/nav_notifications"
+        android:icon="@drawable/ic_notifications_black_24dp"
+        android:title="@string/nav_notifications" />-->
 
         <item
             android:id="@+id/nav_picked"
             android:icon="@drawable/ic_menu_send"
             android:title="@string/nav_started_delivering" />
+
+        <item
+            android:id="@+id/nav_delivered"
+            android:icon="@drawable/ic_menu_send"
+            android:title="@string/nav_complete_delivery"/>
+
     </group>
 
-    <item android:title="Other">
+<!--    <item android:title="Other">
         <menu>
             <item
                 android:id="@+id/nav_privacy_policy"
                 android:title="@string/privacy_policy" />
         </menu>
-    </item>
+    </item>-->
 
 </menu>

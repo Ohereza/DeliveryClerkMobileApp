@@ -250,10 +250,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         //intent.putExtra("order_id", jsonRequest.getString("order_id"));
                         startActivity(intent);
 
-                    } else if(message.getMessage().toString().toLowerCase().contains("latlng")) {
 
+                    } else if(message.getMessage().toString().toLowerCase().contains("latlng")) {
+                            // Message format
+                            // {"wc_order_58304ca8159ae":{"latlng":[-1.94442,30.089541]}}
+                            // json object: {"wc_order_58304ca8159ae":{"latlng":[-1.94442,30.089541]}}
                             zoomToClient = false;
-                            String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
+                            String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[3];
                             double lat = Double.parseDouble(latLon.split(",")[0]);
                             double lon = Double.parseDouble(latLon.split(",")[1]);
 
@@ -338,20 +341,25 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
                         drawer.closeDrawers();
                         return true;
-                    case R.id.nav_notifications:
+/*                    case R.id.nav_notifications:
                         startActivity(new Intent(HomeActivity.this, NotificationActivity.class));
                         drawer.closeDrawers();
-                        return true;
+                        return true;*/
                     case R.id.nav_picked:
-                        updateDeliveryRequestToDelivering();
+                        updateDeliveryRequestStatus("Delivering");
                         //startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
                         drawer.closeDrawers();
                         return true;
-                    case R.id.nav_privacy_policy:
+                    case R.id.nav_delivered:
+                        updateDeliveryRequestStatus("Delivered");
+                        //startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
+                        drawer.closeDrawers();
+                        return true;
+/*                    case R.id.nav_privacy_policy:
                         // launch new intent instead of loading fragment
                         startActivity(new Intent(HomeActivity.this, PrivacyPolicyActivity.class));
                         drawer.closeDrawers();
-                        return true;
+                        return true;*/
                     default:
                         navItemIndex = 0;
                 }
@@ -483,7 +491,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         return super.onOptionsItemSelected(item);
     }
 
-    private void updateDeliveryRequestToDelivering(){
+    private void updateDeliveryRequestStatus(final String newStatus){
 
         cookieJar = new PersistentCookieJar(new SetCookieCache(),
                 new SharedPrefsCookiePersistor(getApplicationContext()));
@@ -505,7 +513,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                                    Response<LoginResponse> response){
 
                 pdsAPI.updateDeliveryRequest( sharedPreferences.getString("order_id",null),
-                        new DeliveryRequestUpdater("Delivering")).enqueue(
+                        new DeliveryRequestUpdater(newStatus)).enqueue(
                         new Callback<DeliveryRequestUpdaterResponse>() {
                             @Override
                             public void onResponse(Call<DeliveryRequestUpdaterResponse> call,

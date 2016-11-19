@@ -21,9 +21,10 @@
 
     <!-- Navigation Drawer menu labels -->
     <string name="nav_home">Home</string>
-    <string name="nav_history">Deliveries</string>
+    <string name="nav_history">Past Deliveries</string>
     <string name="nav_notifications">Notifications</string>
     <string name="nav_started_delivering">Start Delivering</string>
+    <string name="nav_complete_delivery">Complete Delivery</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_about_us">About Us</string>
 
