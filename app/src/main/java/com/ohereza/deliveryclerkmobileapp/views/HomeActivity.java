@@ -115,7 +115,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // urls to load navigation header background image
     // and profile image
-    private static final String urlProfileImg = "https://media.licdn.com/mpr/mpr/shrinknp_200_200/p/4/000/148/278/26f545a.jpg";
+    private static final String urlProfileImg = "http://tr3.cbsistatic.com/fly/bundles/techrepubliccore/images/icons/standard/icon-user-default.png";
 
     // index to identify current nav menu item
     public static int navItemIndex = 0;
