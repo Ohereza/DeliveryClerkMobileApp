@@ -67,6 +67,11 @@ public class LocatorService extends Service implements  GoogleApiClient.Connecti
         super.onCreate();
         Toast.makeText(this, "on create LocatorService", Toast.LENGTH_SHORT).show();
 
+        // Find logged in user
+        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+        usr = sharedPreferences.getString("usr",null);
+        pwd = sharedPreferences.getString("pwd",null);
+
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -86,10 +91,6 @@ public class LocatorService extends Service implements  GoogleApiClient.Connecti
             locationWebService.execute(mLastLocation);
         }
 
-        // Find logged in user
-        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
-        usr = sharedPreferences.getString("usr",null);
-        pwd = sharedPreferences.getString("pwd",null);
     }
 
     @Override

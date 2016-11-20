@@ -152,6 +152,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         super.onCreate(savedInstanceState);
         buildGoogleApiClient();
+
+        //set delivery_clerk
+        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+        username = sharedPreferences.getString("usr","none");
+
         setContentView(R.layout.activity_main);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -220,8 +225,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         setUpNavigationView();
 
         // Find logged in user
-        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
-        username = sharedPreferences.getString("usr",null);
+
+
+        Toast.makeText(this,"delivery_clerk: "+username,Toast.LENGTH_LONG).show();
 
         // Pubnub subscribe to a channel
         pubnub.subscribe().channels(Arrays.asList(username)).execute();
@@ -403,7 +409,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * name, website
      */
     private void loadNavHeader() {
-        txtName.setText("ClerkId: "+username);
+        txtName.setText(username);
         txtWebsite.setText("");
 
         // Loading profile image

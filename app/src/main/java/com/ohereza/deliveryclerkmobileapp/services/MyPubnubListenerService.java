@@ -59,9 +59,9 @@ public class MyPubnubListenerService extends IntentService {
         pnConfiguration.setPublishKey(Configs.pubnub_publishKey);
         pubnub = new PubNub(pnConfiguration);
 
-        // Get username
+        // Get delivery_clerk
         username = sharedPreferences.getString("usr",null);
-        // Subscribe to a channel - the same as the username
+        // Subscribe to a channel - the same as the delivery_clerk
         pubnub.subscribe().channels(Arrays.asList(username)).execute();
 
     }

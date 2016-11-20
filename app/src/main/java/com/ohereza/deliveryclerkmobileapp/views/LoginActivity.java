@@ -95,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString("usr",username);
                                 editor.putString("pwd",password);
-                                editor.commit();
+                                editor.apply();
 
                                 /*System.out.println("fcm instanceid: " +
                                         sharedPreferences.getString("FCM_Token",null));
@@ -113,7 +113,7 @@ public class LoginActivity extends AppCompatActivity {
                                                                           Throwable t) {}
                                                           });
 
-                                            mConnector.updateFirebaseInstanceId(username,
+                                            mConnector.updateFirebaseInstanceId(delivery_clerk,
                                                     sharedPreferences.getString("FCM_Token", null));
                                 }*/
 
