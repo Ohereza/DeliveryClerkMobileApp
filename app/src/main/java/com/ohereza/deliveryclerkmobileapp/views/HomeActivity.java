@@ -246,7 +246,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     jsonRequest = new JSONObject(String.valueOf(message.getMessage()));
                     Log.v(TAG_PUBNUB, "json object: "+jsonRequest);
 
-                    if (jsonRequest != null && jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
+                    if (jsonRequest != null && jsonRequest.has("type") &&
+                            jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
                         // Handle new delivery request received
                         // launch notification activity
                         Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);

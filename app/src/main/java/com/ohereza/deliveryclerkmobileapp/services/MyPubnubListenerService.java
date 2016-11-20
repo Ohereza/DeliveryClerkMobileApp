@@ -97,6 +97,7 @@ public class MyPubnubListenerService extends IntentService {
                 if ( ! MyApplication.isMapActivityVisible() ) {
                     // Handle new message stored in message.message
                     Log.v(TAG_PUBNUBLISTENER, "message(" + message.getMessage() + ")");
+                    Log.v(TAG_PUBNUBLISTENER, "MAP NOT VISIBLE");
                     // {"order_id":"f88d553b6b","type":"Delivery Request"}
                     JSONObject jsonRequest = null;
 
@@ -104,7 +105,8 @@ public class MyPubnubListenerService extends IntentService {
                         jsonRequest = new JSONObject(String.valueOf(message.getMessage()));
                         Log.v(TAG_PUBNUBLISTENER, "json object: " + jsonRequest);
 
-                        if (jsonRequest != null && jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
+                        if (jsonRequest != null && jsonRequest.has("type")
+                                && jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
                             // Handle new delivery request received
                             // launch notification activity
                             Intent intent = new Intent(MyPubnubListenerService.this, NotificationActivity.class);
