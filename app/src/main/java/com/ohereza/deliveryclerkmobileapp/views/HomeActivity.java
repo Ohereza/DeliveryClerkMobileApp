@@ -238,7 +238,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     jsonRequest = new JSONObject(String.valueOf(message.getMessage()));
                     Log.v(TAG_PUBNUB, "json object: "+jsonRequest);
 
-                    if (jsonRequest != null && jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
+                    if (jsonRequest != null && jsonRequest.has("type") &&
+                            jsonRequest.getString("type").equalsIgnoreCase("Delivery Request")) {
                         // Handle new delivery request received
                         // launch notification activity
                         Intent intent = new Intent(HomeActivity.this, NotificationActivity.class);
@@ -256,7 +257,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // {"wc_order_58304ca8159ae":{"latlng":[-1.94442,30.089541]}}
                             // json object: {"wc_order_58304ca8159ae":{"latlng":[-1.94442,30.089541]}}
                             zoomToClient = false;
-                            String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[3];
+                            String latLon = message.getMessage().toString().split("(\\{)|(:)|(\\[)|(\\])")[5];
                             double lat = Double.parseDouble(latLon.split(",")[0]);
                             double lon = Double.parseDouble(latLon.split(",")[1]);
 
