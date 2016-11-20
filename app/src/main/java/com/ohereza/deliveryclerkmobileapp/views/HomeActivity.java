@@ -602,7 +602,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         pdsAPI = retrofit.create(PdsAPI.class);
 
-        pdsAPI.login("Administrator", "pds").enqueue(new Callback<LoginResponse>() {
+        pdsAPI.login(username, sharedPreferences.getString("pwd",null)).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call,
                                    Response<LoginResponse> response){
