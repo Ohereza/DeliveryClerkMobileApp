@@ -13,8 +13,6 @@ public class DeliveryRequestUpdater {
     @Expose
     public String status;
 
-
-
     public DeliveryRequestUpdater( String newStatus) {
         status = newStatus;
     }

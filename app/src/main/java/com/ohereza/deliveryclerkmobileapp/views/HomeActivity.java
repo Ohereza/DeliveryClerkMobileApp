@@ -51,7 +51,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.ohereza.deliveryclerkmobileapp.R;
 import com.ohereza.deliveryclerkmobileapp.helper.Configs;
-import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdater;
 import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdaterResponse;
 import com.ohereza.deliveryclerkmobileapp.helper.LoginResponse;
 import com.ohereza.deliveryclerkmobileapp.helper.ParserTask;
@@ -442,12 +441,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         drawer.closeDrawers();
                         return true;*/
                     case R.id.nav_picked:
-                        updateDeliveryRequestStatus("Delivering");
+                        updateRequestToDelivering();
                         //startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
                         drawer.closeDrawers();
                         return true;
                     case R.id.nav_delivered:
-                        updateDeliveryRequestStatus("Delivered");
+                        updateRequestToDelivered();
                         //startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
                         drawer.closeDrawers();
                         return true;
@@ -587,7 +586,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         return super.onOptionsItemSelected(item);
     }
 
-    private void updateDeliveryRequestStatus(final String newStatus){
+    private void updateRequestToDelivering(){
 
         cookieJar = new PersistentCookieJar(new SetCookieCache(),
                 new SharedPrefsCookiePersistor(getApplicationContext()));
@@ -608,8 +607,51 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onResponse(Call<LoginResponse> call,
                                    Response<LoginResponse> response){
 
-                pdsAPI.updateDeliveryRequest( sharedPreferences.getString("order_id",null),
-                        new DeliveryRequestUpdater(newStatus)).enqueue(
+                pdsAPI.startDelivery( sharedPreferences.getString("order_id",null)).enqueue(
+                        new Callback<DeliveryRequestUpdaterResponse>() {
+                            @Override
+                            public void onResponse(Call<DeliveryRequestUpdaterResponse> call,
+                                                   Response<DeliveryRequestUpdaterResponse> response){
+                                Toast.makeText(getApplicationContext(),
+                                        "Request successfully accepted", Toast.LENGTH_LONG).show();
+                                finish();
+                            }
+
+                            @Override
+                            public void onFailure(Call<DeliveryRequestUpdaterResponse> call, Throwable t){
+                            }
+                        }
+                );
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+            }
+        });
+    }
+
+    private void updateRequestToDelivered(){
+
+        cookieJar = new PersistentCookieJar(new SetCookieCache(),
+                new SharedPrefsCookiePersistor(getApplicationContext()));
+        okHttpClient = new OkHttpClient.Builder()
+                .cookieJar(cookieJar)
+                .build();
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Configs.serverAddress)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build();
+
+        pdsAPI = retrofit.create(PdsAPI.class);
+
+        pdsAPI.login(username, sharedPreferences.getString("pwd",null)).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call,
+                                   Response<LoginResponse> response){
+
+                pdsAPI.endDelivery( sharedPreferences.getString("order_id",null)).enqueue(
                         new Callback<DeliveryRequestUpdaterResponse>() {
                             @Override
                             public void onResponse(Call<DeliveryRequestUpdaterResponse> call,

@@ -11,6 +11,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
@@ -35,6 +36,12 @@ public interface PdsAPI {
     @PUT("/api/resource/Delivery Request/{req_id}")
     Call<DeliveryRequestUpdaterResponse> updateDeliveryRequest(@Path("req_id") String request_id,
                                                                @Body DeliveryRequestUpdater data);
+
+    @GET("/api/method/pds.api.start_delivering/?order_number={req_id}")
+    Call<DeliveryRequestUpdaterResponse> startDelivery(@Path("req_id") String request_id);
+
+    @GET("/api/method/pds.api.finish_delivering/?order_number={req_id}")
+    Call<DeliveryRequestUpdaterResponse> endDelivery(@Path("req_id") String request_id);
 
     @POST("/api/resource/Location")
     Call<LocationUpdateResponse> updateLocation(@Body LocationUpdater data);
