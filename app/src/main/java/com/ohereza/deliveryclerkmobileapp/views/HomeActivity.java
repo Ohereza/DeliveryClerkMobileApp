@@ -11,6 +11,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -53,6 +54,7 @@ import com.ohereza.deliveryclerkmobileapp.helper.Configs;
 import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdater;
 import com.ohereza.deliveryclerkmobileapp.helper.DeliveryRequestUpdaterResponse;
 import com.ohereza.deliveryclerkmobileapp.helper.LoginResponse;
+import com.ohereza.deliveryclerkmobileapp.helper.ParserTask;
 import com.ohereza.deliveryclerkmobileapp.interfaces.PdsAPI;
 import com.ohereza.deliveryclerkmobileapp.other.CircleTransform;
 import com.ohereza.deliveryclerkmobileapp.other.MyApplication;
@@ -67,6 +69,12 @@ import com.pubnub.api.models.consumer.pubsub.PNPresenceEventResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
@@ -92,7 +100,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView txtName, txtWebsite;
     private Toolbar toolbar;
 
-    private GoogleMap mMap;
+    public static GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
@@ -107,7 +115,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // urls to load navigation header background image
     // and profile image
-    private static final String urlProfileImg = "https://media.licdn.com/mpr/mpr/shrinknp_200_200/p/4/000/148/278/26f545a.jpg";
+    private static final String urlProfileImg = "http://tr3.cbsistatic.com/fly/bundles/techrepubliccore/images/icons/standard/icon-user-default.png";
 
     // index to identify current nav menu item
     public static int navItemIndex = 0;
@@ -271,6 +279,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     updatePolyline();
                                     updateCamera();
                                     updateMarker();
+                                    drawRoute();
                                 }
 
                             });
@@ -296,11 +305,97 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clientLocation, 14));
             }
 
+            private synchronized void drawRoute (){
+                Log.d("damn reached drawroute","");
+                if (myLocation !=null && clientLocation!=null) {
+                    LatLng origin = myLocation;
+                    LatLng dest = clientLocation;
+
+                    // Getting URL to the Google Directions API
+                    String url = getUrl(origin, dest);
+                    Log.d("damn onMapClick", url.toString());
+                    FetchUrl FetchUrl = new FetchUrl();
+
+                    // Start downloading json data from Google Directions API
+                    FetchUrl.execute(url);
+                    //move map camera
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(dest));
+                    //mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+                    //mMap.addMarker(new MarkerOptions().position(clientLocation));
+                }
+                else {
+                    Log.d("damn it's not running", "");
+                }
+            }
+
             @Override
             public void presence(PubNub pubnub, PNPresenceEventResult presence) {
             }
         });
 
+    }
+
+    public String getUrl(LatLng origin, LatLng dest) {
+
+        // Origin of route
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+
+        // Destination of route
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+
+
+        // Sensor enabled
+        String sensor = "sensor=false";
+
+        // Building the parameters to the web service
+        String parameters = str_origin + "&" + str_dest + "&" + sensor;
+
+        // Output format
+        String output = "json";
+
+        // Building the url to the web service
+        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
+
+
+        return url;
+    }
+
+    private String downloadUrl(String strUrl) throws IOException {
+        String data = "";
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        try {
+            URL url = new URL(strUrl);
+
+            // Creating an http connection to communicate with url
+            urlConnection = (HttpURLConnection) url.openConnection();
+
+            // Connecting to url
+            urlConnection.connect();
+
+            // Reading data from url
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+
+            StringBuffer sb = new StringBuffer();
+
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+            data = sb.toString();
+            Log.d("downloadUrl", data.toString());
+            br.close();
+
+        } catch (Exception e) {
+            Log.d("Exception", e.toString());
+        } finally {
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
     }
 
     /***
@@ -396,7 +491,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         };
 
         //Setting the actionbarToggle to drawer layout
-        drawer.setDrawerListener(actionBarDrawerToggle);
+        drawer.addDrawerListener(actionBarDrawerToggle); //setDrawerListener();
 
         //calling sync state is necessary or else your hamburger icon wont show up
         actionBarDrawerToggle.syncState();
@@ -735,5 +830,36 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         return myLocation;
+    }
+
+    // Fetches data from url passed
+    private class FetchUrl extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... url) {
+
+            // For storing data from web service
+            String data = "";
+
+            try {
+                // Fetching the data from web service
+                data = downloadUrl(url[0]);
+                Log.d("Background Task data", data.toString());
+            } catch (Exception e) {
+                Log.d("Background Task", e.toString());
+            }
+            return data;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            ParserTask parserTask = new ParserTask();
+
+            // Invokes the thread for parsing the JSON data
+            parserTask.execute(result);
+
+        }
     }
 }
