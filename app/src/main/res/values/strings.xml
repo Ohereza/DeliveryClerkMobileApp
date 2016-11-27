@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DeliveryClerkMobileApp</string>
+    <string name="app_name">Clerk</string>
 
     <!-- related to the login activity  -->
     <string name="username">Username</string>
