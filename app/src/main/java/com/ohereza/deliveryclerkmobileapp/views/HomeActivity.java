@@ -276,7 +276,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                             clientLocation = new LatLng(lat, lon);
                             mPolylineOptions = new PolylineOptions();
-                            mPolylineOptions.color(Color.BLUE).width(10);
+                            mPolylineOptions.color(Color.BLUE).width(15);
 
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -311,14 +311,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             private synchronized void drawRoute (){
-                Log.d("damn reached drawroute","");
                 if (myLocation !=null && clientLocation!=null) {
                     LatLng origin = myLocation;
                     LatLng dest = clientLocation;
 
                     // Getting URL to the Google Directions API
                     String url = getUrl(origin, dest);
-                    Log.d("damn onMapClick", url.toString());
                     FetchUrl FetchUrl = new FetchUrl();
 
                     // Start downloading json data from Google Directions API
@@ -327,9 +325,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(dest));
                     //mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
                     //mMap.addMarker(new MarkerOptions().position(clientLocation));
-                }
-                else {
-                    Log.d("damn it's not running", "");
                 }
             }
 
@@ -444,9 +439,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         return true;
                     case R.id.nav_picked:
                         updateRequestToDelivering();
-                        startActivity(new Intent(HomeActivity.this, HomeActivity.class));
+                        //startActivity(new Intent(HomeActivity.this, null));
                         drawer.closeDrawers();
-                        return true;
+                        //return false;
                     case R.id.nav_delivered:
                         updateRequestToDelivered();
                         startActivity(new Intent(HomeActivity.this, HomeActivity.class));
@@ -816,11 +811,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         myLocation = new LatLng(lat, lon);
 
-        marker = mMap.addMarker(new MarkerOptions().position(myLocation).title("My Location"));
+        marker = mMap.addMarker(new MarkerOptions().position(myLocation).title("Me"));
+        marker.showInfoWindow();
         //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
         if (zoomToClient) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(myLocation));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
             //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation);
         } else {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
