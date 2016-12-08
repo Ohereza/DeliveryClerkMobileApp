@@ -443,6 +443,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         drawer.closeDrawers();
                         //return false;
                     case R.id.nav_delivered:
+                        mMap.clear();
                         updateRequestToDelivered();
                         startActivity(new Intent(HomeActivity.this, HomeActivity.class));
                         drawer.closeDrawers();
